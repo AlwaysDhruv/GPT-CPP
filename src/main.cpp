@@ -4,18 +4,27 @@
 #include <cmath>
 
 #include "./include/BPE.hpp"
+#include "./include/Embedding.hpp"
 
 using namespace std;
 
 int main(int argc, char const *argv[])
 {
 	Tokenize tk;
+	
+	vector<string> tokens;
+	vector<long long> token_ids;
+	tk.encoding("../data/test.txt", tokens, token_ids);
+	
+	Embedd ed;
+	
+	vector<vector<float>> embedding;
+	ed.rand(embedding, token_ids.size(), 5);
 
-	random_device rd;
-	mt19937 gen(rd());
-	uniform_real_distribution<float> dist(-1.0, 1.0);
-	
-	cout << round(dist(gen) * 100) / 100 << endl;
-	
+	for (size_t i = 0; i < embedding.size(); ++i)
+	{
+		for (size_t j = 0; j < embedding[i].size(); ++j) cout << embedding[i][j] << " ";
+		cout << endl;
+	}
 	return 0;
 }
