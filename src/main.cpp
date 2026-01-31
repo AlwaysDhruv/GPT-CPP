@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <random>
 #include <vector>
 #include <cmath>
@@ -19,11 +20,15 @@ int main(int argc, char const *argv[])
 	Embedd ed;
 	
 	vector<vector<float>> embedding;
-	ed.rand(embedding, token_ids.size(), 5);
+	ed.embeddings(embedding, token_ids.size(), 10);
+	ed.positioning_encoding(embedding);
 
 	for (size_t i = 0; i < embedding.size(); ++i)
 	{
-		for (size_t j = 0; j < embedding[i].size(); ++j) cout << embedding[i][j] << " ";
+		for (size_t j = 0; j < embedding[i].size(); ++j)
+		{
+			cout << embedding[i][j] << " ";
+		}
 		cout << endl;
 	}
 	return 0;
