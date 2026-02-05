@@ -23,13 +23,6 @@ int main(int argc, char const *argv[])
 	ed.embeddings(embedding, token_ids.size(), 10);
 	ed.positioning_encoding(embedding);
 
-	for (size_t i = 0; i < embedding.size(); ++i)
-	{
-		for (size_t j = 0; j < embedding[i].size(); ++j)
-		{
-			cout << embedding[i][j] << " ";
-		}
-		cout << endl;
-	}
+	
 	return 0;
 }
