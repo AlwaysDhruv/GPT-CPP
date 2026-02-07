@@ -7,7 +7,7 @@
 #include "./include/BPE.hpp"
 #include "./include/Embedding.hpp"
 #include "./include/Linear.hpp"
-
+#include "./include/Tensor.hpp"
 using namespace std;
 
 int main(int argc, char const *argv[])
@@ -25,10 +25,17 @@ int main(int argc, char const *argv[])
 	ed.positioning_encoding(embedding);
 
 	Linear projection;
-	vector<vector<float>> weigths;
-	projection.weigths(weigths, 12);
-
-	cout << weigths.size() << " " << weigths[0].size() << endl;
+	vector<vector<float>> w_query;
+	vector<vector<float>> w_key;
+	vector<vector<float>> w_value;
+	projection.linear(w_query, w_key, w_value, 12);
 	
+	Tensor tensr;
+	vector<vector<float>> query;
+	vector<vector<float>> key;
+	vector<vector<float>> value;
+	query = tensr.dot_product(w_query, embedding);
+	key = tensr.dot_product(w_key, embedding);
+	value = tensr.dot_product(w_value, embedding);
 	return 0;
 }
