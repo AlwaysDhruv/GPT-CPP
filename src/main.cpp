@@ -37,5 +37,6 @@ int main(int argc, char const *argv[])
 	query = tensr.dot_product(w_query, embedding);
 	key = tensr.dot_product(w_key, embedding);
 	value = tensr.dot_product(w_value, embedding);
+	
 	return 0;
 }
