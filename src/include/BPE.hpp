@@ -460,9 +460,7 @@ class Tokenize
 		                        merges_file << tk1 << " " << tk2 << endl;            
 		                        merges_file.close();
 		                    }    
-		        
-				            cout << i + 1 << ". " << tk1 << " : " << fre[0].token1 << " & " << tk2 << " : " << fre[0].token2 << " => "<< tk << " : " << fre[0].merge << endl; 
-				            
+  				            cout << i + 1 << ". " << tk1 << " : " << fre[0].token1 << " & " << tk2 << " : " << fre[0].token2 << " => "<< tk << " : " << fre[0].merge << endl;				            
 				            if (pairs.size() != 1)
 				            {
 				                for (size_t i = 0; i < pairs.size(); ++i)
