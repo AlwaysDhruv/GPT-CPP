@@ -23,7 +23,9 @@ public:
 	
 	vector<vector<vector<float>>> multi_head(vector<vector<float>> value, int head_size)
 	{
+		int dim_size = value[0].size() / head_size;
 		vector<vector<vector<float>>> values;
+		
 		for (size_t i = 0; i < value.size(); ++i)
 		{
 			int ct = 0;
@@ -31,15 +33,18 @@ public:
 			vector<vector<float>> temp1;
 			for (size_t j = 0; j < value[0].size(); ++j)
 			{
-				if (ct==head_size)
+				if (ct==dim_size)
 				{
-					cout << " || ";
+					temp1.push_back(temp);
+					temp.clear();
 					ct = 0;
 				}
-				cout << value[i][j] << " ";
-				++ct;				
+				temp.push_back(value[i][j]);
+				++ct;
 			}
-			cout << endl;
+			for (size_t j = value[0].size() - dim_size; j < value[0].size(); ++j) temp.push_back(value[i][j]);
+			temp1.push_back(temp);
+			values.push_back(temp1);
 		}
 		return values;
 	}

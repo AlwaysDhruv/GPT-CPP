@@ -36,8 +36,8 @@ int main(int argc, char const *argv[])
 	vector<vector<vector<float>>> query;
 	vector<vector<vector<float>>> key;
 	vector<vector<vector<float>>> value;
-	query = tensr.multi_head(w_query, 4 / 2);
-	key = tensr.multi_head(w_key, 4 / 2);
-	value = tensr.multi_head(w_value, 4 / 2);
+	query = tensr.multi_head(w_query, 2);
+	key = tensr.multi_head(w_key, 2);
+	value = tensr.multi_head(w_value, 2);
 	return 0;
 }
