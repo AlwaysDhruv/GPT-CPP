@@ -8,6 +8,9 @@
 #include "./include/Embedding.hpp"
 #include "./include/Linear.hpp"
 #include "./include/Tensor.hpp"
+#include "./include/Display.hpp"
+#include "./include/Attension.hpp"
+
 using namespace std;
 
 int main(int argc, char const *argv[])
@@ -18,16 +21,18 @@ int main(int argc, char const *argv[])
 	tk.encoding("../data/test2.txt", tokens, token_ids);
 	
 	Embedd ed;
-	vector<vector<float>> embedding;
-	ed.embeddings(embedding, token_ids.size(), 4);
+	vector<vector<float>> embedding(token_ids.size(), vector<float>(4, 0.0f));
+	ed.embeddings(embedding);
 	ed.positioning_encoding(embedding);
 
 	Linear projection;
 	vector<vector<float>> w_query;
 	vector<vector<float>> w_key;
 	vector<vector<float>> w_value;
-	projection.linear(w_query, w_key, w_value, 4);
-	
+	w_query = projection.linear(4);
+	w_key = projection.linear(4);
+	w_value = projection.linear(4);
+
 	Tensor tensr;
 	w_query = tensr.dot_product(w_query, embedding);
 	w_key = tensr.dot_product(w_key, embedding);
@@ -36,8 +41,15 @@ int main(int argc, char const *argv[])
 	vector<vector<vector<float>>> query;
 	vector<vector<vector<float>>> key;
 	vector<vector<vector<float>>> value;
-	query = tensr.multi_head(w_query, 2);
-	key = tensr.multi_head(w_key, 2);
-	value = tensr.multi_head(w_value, 2);
+	query = tensr.reshape_to_multihead(w_query, 2);
+	key = tensr.reshape_to_multihead(w_key, 2);
+	value = tensr.reshape_to_multihead(w_value, 2);
+
+	cout << query.size() << " " << query[0].size() << " " << query[0][0].size() << endl;
+	cout << key.size() << " " << key[0].size() << " " << key[0][0].size() << endl;
+	cout << value.size() << " " << value[0].size() << " " << value[0][0].size() << endl;
+	// Debug::display(query);
+	// Debug::display(key);
+	// Debug::display(value);
 	return 0;
 }

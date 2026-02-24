@@ -1,51 +1,31 @@
 #ifndef TENSOR
 #define TENSOR
 
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+
 class Tensor
 {
 public:
-	vector<vector<float>> dot_product(vector<vector<float>> vector1, vector<vector<float>> vector2)
+	vector<vector<float>> dot_product(vector<vector<float>>& vector1, vector<vector<float>>& vector2)
 	{
-		vector<vector<float>> vector3;
-		for (size_t k = 0; k < vector2.size(); ++k)
-		{
-			vector<float> temp;
-			for (size_t i = 0; i < vector1.size(); ++i)
-			{
-				float sum = 0.0;
-				for (size_t j = 0; j < vector1[0].size(); ++j) sum += vector1[j][i] * vector2[k][j];
-				temp.push_back(sum);
-			}
-			vector3.push_back(temp);
-		}
+		vector<vector<float>> vector3(vector2.size(), vector<float>(vector1[0].size(), 0.0f));
+		for (size_t k = 0; k < vector2.size(); ++k) for (size_t i = 0; i < vector1.size(); ++i) for (size_t j = 0; j < vector1[0].size(); ++j) vector3[k][j] += vector1[j][i] * vector2[k][j];
+		
 		return vector3;
 	}
-	
-	vector<vector<vector<float>>> multi_head(vector<vector<float>> value, int head_size)
+
+	vector<vector<vector<float>>> reshape_to_multihead(vector<vector<float>>& vectorr, int head_size)
 	{
-		int dim_size = value[0].size() / head_size;
-		vector<vector<vector<float>>> values;
+		int ctc = 0;
+		int dim_size = vectorr[0].size() / head_size;
+		vector<vector<vector<float>>> values(head_size,vector<vector<float>>(vectorr.size(),vector<float>(dim_size)));
+		for (size_t k = 0; k < head_size; ++k) for (size_t i = 0; i < vectorr.size(); ++i) for (size_t j = 0; j < dim_size; ++j) values[k][i][j] = vectorr[i][k * dim_size + j];
 		
-		for (size_t i = 0; i < value.size(); ++i)
-		{
-			int ct = 0;
-			vector<float> temp;
-			vector<vector<float>> temp1;
-			for (size_t j = 0; j < value[0].size(); ++j)
-			{
-				if (ct==dim_size)
-				{
-					temp1.push_back(temp);
-					temp.clear();
-					ct = 0;
-				}
-				temp.push_back(value[i][j]);
-				++ct;
-			}
-			for (size_t j = value[0].size() - dim_size; j < value[0].size(); ++j) temp.push_back(value[i][j]);
-			temp1.push_back(temp);
-			values.push_back(temp1);
-		}
 		return values;
 	}
 };
