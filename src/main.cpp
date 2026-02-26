@@ -45,11 +45,7 @@ int main(int argc, char const *argv[])
 	key = tensr.reshape_to_multihead(w_key, 2);
 	value = tensr.reshape_to_multihead(w_value, 2);
 
-	cout << query.size() << " " << query[0].size() << " " << query[0][0].size() << endl;
-	cout << key.size() << " " << key[0].size() << " " << key[0][0].size() << endl;
-	cout << value.size() << " " << value[0].size() << " " << value[0][0].size() << endl;
-	// Debug::display(query);
-	// Debug::display(key);
-	// Debug::display(value);
+	Attension multi;
+	multi.scores(query, key, value);
 	return 0;
 }
