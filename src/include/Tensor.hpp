@@ -34,6 +34,7 @@ public:
 	{
 		vector<vector<float>> values(vectorr[0].size(), vector<float>(vectorr.size(), 0.0f));
 		for (size_t i = 0; i < vectorr[0].size(); ++i) for (size_t j = 0; j < vectorr.size(); ++j) values[i][j] = vectorr[j][i];
+			
 		return values;
 	}
 };
