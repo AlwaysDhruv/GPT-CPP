@@ -15,7 +15,10 @@ public:
 	vector<vector<float>> dot_product(vector<vector<float>>& vector1, vector<vector<float>>& vector2)
 	{
 		vector<vector<float>> vector3(vector2.size(), vector<float>(vector1[0].size(), 0.0f));
-		for (size_t k = 0; k < vector2.size(); ++k) for (size_t i = 0; i < vector1.size(); ++i) for (size_t j = 0; j < vector1[0].size(); ++j) vector3[k][j] += vector1[j][i] * vector2[k][j];
+		for (size_t k = 0; k < vector2.size(); ++k)
+			for (size_t i = 0; i < vector1.size(); ++i)
+				for (size_t j = 0; j < vector1[0].size(); ++j)
+					vector3[k][j] += vector1[j][i] * vector2[k][j];
 		
 		return vector3;
 	}
@@ -36,6 +39,22 @@ public:
 		for (size_t i = 0; i < vectorr[0].size(); ++i) for (size_t j = 0; j < vectorr.size(); ++j) values[i][j] = vectorr[j][i];
 			
 		return values;
+	}
+
+   	vector<vector<float>> dot_product2(vector<vector<float>>& vector1, vector<vector<float>>& vector2)
+	{
+		vector<vector<float>> vector3(vector1.size(), vector<float>(vector2[0].size(), 0.0f));
+
+		for (size_t i = 0; i < vector1.size(); ++i)
+		{
+			for (size_t j = 0; j < vector2[0].size(); ++j)
+			{
+				float sum = 0.0f;
+				for (size_t k = 0; k < vector2.size(); ++k) sum += vector1[i][k] * vector2[k][j];
+				vector3[i][j] = sum;
+			}
+		}
+		return vector3;
 	}
 };
 #endif

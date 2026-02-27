@@ -10,6 +10,7 @@
 #include "./include/Linear.hpp"
 #include "./include/Tensor.hpp"
 #include "./include/Display.hpp"
+#include "./include/Functions.hpp"
 #include "./include/Attension.hpp"
 
 using namespace std;
@@ -46,7 +47,8 @@ int main(int argc, char const *argv[])
 	key = tensr.reshape_to_multihead(w_key, 2);
 	value = tensr.reshape_to_multihead(w_value, 2);
 
-	Attension multi;
-	multi.scores(query, key, value);
+	Multiheadattension block;
+	block.decoder(query, key, value);
+
 	return 0;
 }
