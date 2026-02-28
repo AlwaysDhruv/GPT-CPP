@@ -4,56 +4,68 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <type_traits> // Required for trait logic
 
 namespace Debug {
 
-    // --- 1. FORWARD DECLARATIONS ---
-    // This tells the compiler these functions exist later in the file
-    template <typename T> void print_inner_shape(const std::vector<T>& vec);
-    template <typename T> void print_inner_shape(const std::vector<std::vector<T>>& vec);
+    // --- 1. TYPE TRAITS (Must come first) ---
+    template <typename T>
+    struct is_vector : std::false_type {};
+    
+    template <typename T>
+    struct is_vector<std::vector<T>> : std::true_type {};
+    
+    template <typename T>
+    inline constexpr bool is_vector_v = is_vector<T>::value;
 
     // --- 2. SHAPE LOGIC ---
+
+    // Base case: We reached the actual data (float/int), stop recursion.
     template <typename T>
-    void print_shape(const std::vector<T>& vec) {
-        std::cout << "Shape: (" << vec.size() << ")" << std::endl;
+    void get_shape_dims(const T&) {
+        // No more dimensions to print
     }
 
+    // Recursive case: We found another vector layer.
     template <typename T>
-    void print_shape(const std::vector<std::vector<T>>& vec) {
-        std::cout << "Shape: (" << vec.size() << ", ";
-        if (!vec.empty()) {
-             print_inner_shape(vec[0]); // Now the compiler knows this exists!
-        } else {
-            std::cout << "0)" << std::endl;
+    void get_shape_dims(const std::vector<T>& vec) {
+        if (vec.empty()) {
+            std::cout << "0";
+            return;
+        }
+        std::cout << vec.size();
+        
+        // Use if constexpr to peel through dimensions
+        if constexpr (is_vector_v<T>) {
+            std::cout << ", ";
+            get_shape_dims(vec[0]);
         }
     }
 
-    // --- 3. INNER SHAPE RECURSION ---
+    // Public Shape Function
     template <typename T>
-    void print_inner_shape(const std::vector<T>& vec) {
-        std::cout << vec.size() << ")" << std::endl;
+    void shape(const std::vector<T>& vec) {
+        std::cout << "Shape: (";
+        get_shape_dims(vec);
+        std::cout << ")" << std::endl;
     }
 
-    template <typename T>
-    void print_inner_shape(const std::vector<std::vector<T>>& vec) {
-        std::cout << vec.size() << ", ";
-        if (!vec.empty()) print_inner_shape(vec[0]);
-        else std::cout << "0)" << std::endl;
-    }
+    // --- 3. DISPLAY FUNCTIONS ---
 
-    // --- 4. DISPLAY FUNCTIONS ---
+    // 1D Case
     template <typename T>
     void display(const std::vector<T>& vec, int indent = 0) {
-        if (indent == 0) print_shape(vec);
+        if (indent == 0) shape(vec);
         std::string padding(indent, ' ');
         std::cout << padding << "[ ";
         for (const auto& val : vec) std::cout << val << " ";
         std::cout << "]" << std::endl;
     }
 
+    // N-Dimensional Case
     template <typename T>
     void display(const std::vector<std::vector<T>>& vec, int indent = 0) {
-        if (indent == 0) print_shape(vec);
+        if (indent == 0) shape(vec);
         std::string padding(indent, ' ');
         std::cout << padding << "[" << std::endl;
         for (const auto& sub_vec : vec) {

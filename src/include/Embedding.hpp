@@ -17,7 +17,7 @@ public:
 		mt19937 gen(rd());
 		uniform_real_distribution<float> dist(-1.0, 1.0);
 
-		for (size_t i = 0; i < values.size(); ++i) for (size_t j = 0; j < values[0].size(); ++j) values[i][j] = round(dist(gen) * 100) / 100;
+		for (size_t i = 0; i < values.size(); ++i) for (size_t j = 0; j < values[0].size(); ++j) values[i][j] = dist(gen);
 	}
 
 	void positioning_encoding(vector<vector<float>>& embedding)
@@ -29,16 +29,8 @@ public:
 			float values;
 			for (size_t j = 0; j < embedding[i].size(); ++j)
 			{
-				if (j % 2 == 0)
-				{
-					values = embedding[i][j] + sin(i / pow(10000.0, j / (float)dim));
-					embedding[i][j] = round(values * 100) / 100;
-				}
-				else
-				{
-					values = embedding[i][j] + cos(i / pow(10000.0, (j - 1) / (float)dim));
-					embedding[i][j] = round(values * 100) / 100;
-				}
+				if (j % 2 == 0) embedding[i][j] = embedding[i][j] + sin(i / pow(10000.0, j / (float)dim));
+				else embedding[i][j] = embedding[i][j] + cos(i / pow(10000.0, (j - 1) / (float)dim));
 			}
 		}
 	}

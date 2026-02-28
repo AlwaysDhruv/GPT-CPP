@@ -12,7 +12,7 @@ using namespace std;
 class Tensor
 {
 public:
-	vector<vector<float>> dot_product(vector<vector<float>>& vector1, vector<vector<float>>& vector2)
+	vector<vector<float>> projection(vector<vector<float>>& vector1, vector<vector<float>>& vector2)
 	{
 		vector<vector<float>> vector3(vector2.size(), vector<float>(vector1[0].size(), 0.0f));
 		for (size_t k = 0; k < vector2.size(); ++k)
@@ -41,7 +41,7 @@ public:
 		return values;
 	}
 
-   	vector<vector<float>> dot_product2(vector<vector<float>>& vector1, vector<vector<float>>& vector2)
+   	vector<vector<float>> dot_product(vector<vector<float>>& vector1, vector<vector<float>>& vector2)
 	{
 		vector<vector<float>> vector3(vector1.size(), vector<float>(vector2[0].size(), 0.0f));
 
@@ -55,6 +55,24 @@ public:
 			}
 		}
 		return vector3;
+	}
+
+	void concate(vector<vector<vector<float>>>& vector1, vector<vector<float>>& vector2)
+	{
+		int ct = 0;
+		for (size_t i = 0; i < vector1.size(); ++i)
+		{
+			for (size_t j = 0; j < vector1[0].size(); ++j) for (size_t l = 0; l < vector1[0][0].size(); ++l) vector2[j][l + ct] = vector1[i][j][l];
+			ct += vector1.size();
+		}
+	}
+	
+	vector<vector<float>> sum(vector<vector<float>>& vector1, vector<vector<float>>& vector2)
+	{
+		vector<vector<float>> sumation(vector1.size(), vector<float>(vector2[0].size()));
+		for (size_t i = 0; i < vector1.size(); ++i) for (size_t j = 0; j < vector2[0].size(); ++j) sumation[i][j] = vector1[i][j] + vector2[i][j];
+
+		return sumation;
 	}
 };
 #endif
