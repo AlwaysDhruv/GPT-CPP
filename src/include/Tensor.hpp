@@ -74,5 +74,10 @@ public:
 
 		return sumation;
 	}
+
+	void sum(vector<vector<float>>& vector1, vector<float>& vector2)
+	{
+		for (size_t i = 0; i < vector1.size(); ++i) for (size_t j = 0; j < vector2.size(); ++j) vector1[i][j] = vector1[i][j] + vector2[j];
+	}	
 };
 #endif

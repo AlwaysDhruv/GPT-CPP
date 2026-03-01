@@ -12,7 +12,7 @@ using namespace std;
 class Multiheadattension
 {
 public:
-	vector<vector<float>> decoder(vector<vector<vector<float>>> query, vector<vector<vector<float>>> key, vector<vector<vector<float>>> value)
+	vector<vector<float>> score(vector<vector<vector<float>>> query, vector<vector<vector<float>>> key, vector<vector<vector<float>>> value)
 	{
 		Tensor tnsr;
 		
