@@ -9,9 +9,8 @@
 
 using namespace std;
 
-class Tensor
+namespace Tensor
 {
-public:
 	vector<vector<float>> projection(vector<vector<float>>& vector1, vector<vector<float>>& vector2)
 	{
 		vector<vector<float>> vector3(vector2.size(), vector<float>(vector1[0].size(), 0.0f));

@@ -13,9 +13,7 @@ class Multiheadattension
 {
 public:
 	vector<vector<float>> score(vector<vector<vector<float>>> query, vector<vector<vector<float>>> key, vector<vector<vector<float>>> value)
-	{
-		Tensor tnsr;
-		
+	{	
 		int head_size = query.size();
 		int seq_len = query[0].size();
 		int v_dim = value[0][0].size();
@@ -26,19 +24,19 @@ public:
 
 		for (size_t j = 0; j < head_size; ++j)
 		{
-			vector<vector<float>> kT = tnsr.transpose(key[j]);
+			vector<vector<float>> kT = Tensor::transpose(key[j]);
 			
-			vector<vector<float>>attension_score = tnsr.dot_product(query[j], kT);
+			vector<vector<float>>attension_score = Tensor::dot_product(query[j], kT);
 			
 			Functions::casual_mask(attension_score, scale);
 			
 			Functions::softmax(attension_score);
 			
-			A[j] = tnsr.dot_product(attension_score, value[j]);
+			A[j] = Tensor::dot_product(attension_score, value[j]);
 		}
 
 		vector<vector<float>> Z(seq_len, vector<float>(head_size * v_dim));
-		tnsr.concate(A, Z);
+		Tensor::concate(A, Z);
 
 		return Z;
 	}

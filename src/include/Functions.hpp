@@ -112,6 +112,42 @@ namespace Functions
 		for (size_t i = 0; i < layers; ++i) for (size_t j = 0; j < dim_size; ++j) for (size_t k = 0; k < dim_size; ++k) values[i][j][k] = round(dist(gen) * 100) / 100;
 		
 		return values;
+
+	}
+	vector<vector<float>> linear2(int cols_size, int rows_size)
+	{
+		random_device rd;
+		mt19937 gen(rd());
+		uniform_real_distribution<float> dist(-1.0, 1.0);
+		vector<vector<float>>values(cols_size, vector<float>(rows_size, 0.0f));
+		for (size_t j = 0; j < cols_size; ++j) for (size_t k = 0; k < rows_size; ++k) values[j][k] = round(dist(gen) * 100) / 100;
+		
+		return values;
+	}
+
+	vector<long long> target_shift(vector<long long> token_ids)
+	{
+		vector<long long> target_ids(token_ids.size());
+		for (size_t i = 0; i < token_ids.size(); ++i) target_ids[i] = token_ids[i];
+
+		return target_ids;
+	}
+
+	vector<vector<float>> gradient_loss(auto forward, auto Y)
+	{
+		float loss = 0.0f;
+		auto dz = forward;
+		auto seq_len = forward.size();
+		for (size_t i = 0; i < forward.size(); ++i)
+		{
+			auto target_id = Y[i];
+			
+			loss += -log(forward[i][target_id] + 1e-9f);
+			dz[i][target_id] -= 1.0f;
+			
+			for (size_t j = 0; j < forward[i].size(); ++j) dz[i][j] /= (float)seq_len;
+		}
+		return dz;
 	}
 }
 #endif
