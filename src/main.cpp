@@ -25,9 +25,10 @@ int main(int argc, char const *argv[])
 	if(file.read(ini))
 	{
 		int embed_size = stoi(ini["GPT"]["Emdedding_size"]);
-		int head_size = stoi(ini["GPT"]["Head_size"]);
+		int head_size = stoi(ini["GPT"]["Head_size"]);\
 		int layers = stoi(ini["GPT"]["Layers"]);
 		int vocab_size = stoi(ini["GPT"]["Vocab_size"]);
+		float learning_rate = stof(ini["GPT"]["Vocab_size"]);
 
 		Tokenize tk;
 		vector<string> tokens;
@@ -41,7 +42,7 @@ int main(int argc, char const *argv[])
 
 		Embedd ed;
 		vector<vector<float>> X_IN(X.size(), vector<float>(embed_size, 0.0f));
-		ed.embeddings(X_IN);
+		ed.embeddings(X_IN);	
 		ed.positioning_encoding(X_IN);
 
 		auto w_query = Functions::linear(layers ,embed_size);
@@ -61,7 +62,7 @@ int main(int argc, char const *argv[])
 		
 		auto dz = Functions::gradient_loss(X_IN, Y);
 		
-		Backward::backward(w_lm, dz, H);
+		Backward::backward(w_lm, b_lm, dz, H, learning_rate);
 	}
 	else cout << "File Have Problem.." << endl;
 

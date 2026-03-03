@@ -55,7 +55,7 @@ namespace Tensor
 		}
 		return vector3;
 	}
-
+	
 	void concate(vector<vector<vector<float>>>& vector1, vector<vector<float>>& vector2)
 	{
 		int ct = 0;
