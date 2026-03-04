@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
 		int head_size = stoi(ini["GPT"]["Head_size"]);\
 		int layers = stoi(ini["GPT"]["Layers"]);
 		int vocab_size = stoi(ini["GPT"]["Vocab_size"]);
-		float learning_rate = stof(ini["GPT"]["Vocab_size"]);
+		float learning_rate = stof(ini["GPT"]["Rate"]);
 
 		Tokenize tk;
 		vector<string> tokens;
@@ -45,6 +45,8 @@ int main(int argc, char const *argv[])
 		ed.embeddings(X_IN);	
 		ed.positioning_encoding(X_IN);
 
+		auto X_IN2 = X_IN;
+
 		auto w_query = Functions::linear(layers ,embed_size);
 		auto w_key = Functions::linear(layers, embed_size);
 		auto w_value = Functions::linear(layers, embed_size);
@@ -57,12 +59,22 @@ int main(int argc, char const *argv[])
 		vector<vector<float>>b2(layers, vector<float>(embed_size, 0.0f));
 		vector<float>b_lm(vocab_size, 0.0f);
 		
-
-		auto H = Forward::Layers(X_IN, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm, head_size, vocab_size, layers);
+		vector<vector<vector<float>>> A(layers, vector<vector<float>>(X_IN.size(),vector<float>(w1[0][0].size(), 0.0f)));
+		vector<vector<vector<float>>> Z(layers, vector<vector<float>>(X_IN.size(),vector<float>(w1[0][0].size(), 0.0f)));
+		vector<vector<float>> H(X_IN.size(), vector<float>(X_IN[0].size()));
 		
+		Forward::Layers(X_IN, A, H, Z, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm, head_size, vocab_size, layers);
+
 		auto dz = Functions::gradient_loss(X_IN, Y);
 		
-		Backward::backward(w_lm, b_lm, dz, H, learning_rate);
+		auto dh = Backward::backward_LM(w_lm, b_lm, H, dz, learning_rate);
+
+		dh = Backward::backward_FFN(w1, w2, b1, b2, A, Z, X_IN2, dh, learning_rate);
+
+		Debug::display(w1);
+		Debug::display(w2);
+		Debug::display(b1);
+		Debug::display(b2);
 	}
 	else cout << "File Have Problem.." << endl;
 

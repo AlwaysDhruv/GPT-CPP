@@ -55,7 +55,7 @@ namespace Tensor
 		}
 		return vector3;
 	}
-	
+   	
 	void concate(vector<vector<vector<float>>>& vector1, vector<vector<float>>& vector2)
 	{
 		int ct = 0;
@@ -77,6 +77,14 @@ namespace Tensor
 	void sum(vector<vector<float>>& vector1, vector<float>& vector2)
 	{
 		for (size_t i = 0; i < vector1.size(); ++i) for (size_t j = 0; j < vector2.size(); ++j) vector1[i][j] = vector1[i][j] + vector2[j];
-	}	
+	}
+
+	vector<float> bias(vector<vector<float>>& dz)
+	{
+		vector<float> b(dz[0].size());
+		for (int i = 0; i < dz.size(); ++i) for (int j = 0; j < dz[0].size(); ++j) b[j] += dz[i][j];
+
+		return b;
+	}
 };
 #endif

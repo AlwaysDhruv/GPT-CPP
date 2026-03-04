@@ -56,6 +56,23 @@ namespace Functions
         return 0.5f * x * (1.0f + tanh(inner));
     }
 
+    float gelu_der(float x)
+    {
+    	const float kSqrt2OverPi = 0.79788456f;
+    	const float kCoeff = 0.044715f;
+    
+    	float x2 = x * x;
+    	float x3 = x * x2;
+    
+    	float inner = kSqrt2OverPi * (x + kCoeff * x3);
+    	float tanh_val = std::tanh(inner);
+    
+    	float left_side = 0.5f * (1.0f + tanh_val);
+    	float right_side = 0.5f * x * (1.0f - tanh_val * tanh_val) * kSqrt2OverPi * (1.0f + 3.0f * kCoeff * x2);
+    
+    	return left_side + right_side;
+	}
+
     void gelu(vector<vector<float>>& H)
     {
         int rows = H.size();
@@ -63,6 +80,15 @@ namespace Functions
 
         for (size_t i = 0; i < rows; ++i) for (size_t j = 0; j < cols; ++j) H[i][j] = gelu_single(H[i][j]);
     }
+
+    void gelu_derivative(vector<vector<float>>& H)
+    {
+        int rows = H.size();
+        int cols = H[0].size();
+
+        for (size_t i = 0; i < rows; ++i) for (size_t j = 0; j < cols; ++j) H[i][j] = gelu_der(H[i][j]);
+    }
+
 	float mean(vector<float> v)
 	{
 		float sum = 0.0f;
@@ -80,17 +106,20 @@ namespace Functions
 
 	vector<vector<float>> normalizaion(vector<vector<float>> X_IN)
 	{
-		vector<vector<float>> result(X_IN.size(), vector<float>(X_IN[0].size(), 0.0f));
-		for (size_t i = 0; i < X_IN.size(); ++i)
-		{
-			float men = mean(X_IN[i]);
-			float var = variance(X_IN[i], men);
-			
-			for (size_t j = 0; j < X_IN[i].size(); ++j) result[i][j] = ((X_IN[i][j] - men) / sqrt(var));
-		}
-		
-		return result;
-	}
+    	const float eps = 1e-5f; // Small constant to prevent division by zero
+    	vector<vector<float>> result(X_IN.size(), vector<float>(X_IN[0].size(), 0.0f));
+    
+    	for (size_t i = 0; i < X_IN.size(); ++i)
+    	{
+        	float men = mean(X_IN[i]);
+        	float var = variance(X_IN[i], men);
+        
+        	float std_dev = sqrt(var + eps);
+        
+        	for (size_t j = 0; j < X_IN[i].size(); ++j) result[i][j] = (X_IN[i][j] - men) / std_dev;
+    	}
+    	return result;
+	}	
 	
 	vector<vector<vector<float>>> linear(int layers, int cols_size, int rows_size)
 	{
@@ -149,5 +178,15 @@ namespace Functions
 		}
 		return dz;
 	}
+	
+	void update(vector<vector<float>>& w, vector<vector<float>> dw, float rate)
+	{
+		for (size_t i = 0; i < w.size(); ++i) for (size_t j = 0; j < w[0].size(); ++j) w[i][j] -= rate * dw[i][j];
+	}
+	
+	void update(vector<float>& b, vector<float> db, float rate)
+	{
+		for (size_t i = 0; i < b.size(); ++i) b[i] -= rate * db[i];
+	}	
 }
 #endif

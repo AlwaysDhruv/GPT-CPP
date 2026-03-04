@@ -10,46 +10,65 @@ using namespace std;
 
 namespace Backward
 {
-	void update(vector<vector<float>>& w, vector<vector<float>> dw, float rate)
-	{
-		for (size_t i = 0; i < w.size(); ++i) for (size_t j = 0; j < w[0].size(); ++j) w[i][j] -= rate * dw[i][j];
-	}
-	
-	void update(vector<float>& b, vector<float> db, float rate)
-	{
-		for (size_t i = 0; i < b.size(); ++i) b[i] -= rate * db[i];
-	}
-
-	void backward(auto w_lm, auto b_lm, auto dz, auto H, auto rate)
+	vector<vector<float>> backward_LM(auto& w_lm, auto& b_lm, auto H, auto dz, auto rate)
 	{
 		auto seq_len = dz.size();
     	auto vocab_size = dz[0].size();
     	auto hidden_dim = H[0].size();
 
-	    vector<vector<float>> dw_lm(hidden_dim, vector<float>(vocab_size, 0.0f));
-	    vector<float> db_lm(vocab_size, 0.0f);
-
-    	for (size_t t = 0; t < seq_len; ++t)
-    		for (size_t i = 0; i < hidden_dim; ++i)
-    			for (size_t j = 0; j < vocab_size; ++j)
-    			{
-    				dw_lm[i][j] += H[t][i] * dz[t][j];
-    				db_lm[j] += dz[t][j];
-    			}
-		
-		vector<vector<float>> dh(seq_len, vector<float>(hidden_dim, 0.0f));
-
-		for (size_t i = 0; i < dz.size(); ++i)
+    	H = Tensor::transpose(H);
+    	
+    	auto dw_lm = Tensor::dot_product(H, dz);
+    	auto db_lm = Tensor::bias(dz);
+    	
+    	vector<vector<float>> dh(seq_len, vector<float>(hidden_dim, 0.0f));
+		for (size_t t = 0; t < seq_len; ++t)
 		{
-			for (size_t j = 0; j < w_lm.size(); ++j)
+			for (size_t i = 0; i < hidden_dim; ++i)
 			{
 				float sum = 0.0;
-				for (size_t t = 0; t < w_lm[0].size(); ++t) sum += dz[j][t] * w_lm[j][t];
-				dh[i][j] = sum;
+				for (size_t j = 0; j < vocab_size; ++j) sum += dz[t][j] * w_lm[i][j];
+				dh[t][i] = sum;
 			}
 		}
-		update(w_lm, dw_lm, rate);
-		update(b_lm, db_lm, rate);
+		
+		Functions::update(w_lm, dw_lm, rate);
+		Functions::update(b_lm, db_lm, rate);
+		
+		return dh;
+	}
+
+	vector<vector<float>> backward_FFN(auto& w1, auto& w2, auto& b1, auto& b2, auto A, auto Z, auto X, auto dh, auto rate)
+	{
+		auto layers = w2.size();
+
+		for (int i = layers - 1; i >= 0; --i)
+		{
+			A[i] = Tensor::transpose(A[i]);
+			auto dw2 = Tensor::dot_product(A[i], dh);
+			auto db2 = Tensor::bias(dh);
+
+			auto w2i = Tensor::transpose(w2[i]);
+			dh = Tensor::dot_product(dh, w2i);
+			
+			Functions::gelu_derivative(Z[i]);
+
+			auto dz = Tensor::dot_product(dh, Z[i]);
+
+			X = Tensor::transpose(X);
+			auto dw1 = Tensor::dot_product(X, dz);
+			auto db1 = Tensor::bias(dz);
+
+			auto w1i = Tensor::transpose(w1[i]);
+			dh = Tensor::dot_product(dz, w1i);
+
+			Functions::update(w2[i], dw2, rate);
+			Functions::update(w1[i], dw1, rate);
+
+			Functions::update(b2[i], db2, rate);
+			Functions::update(b1[i], db1, rate);
+		}
+		return dh;
 	}
 };
 #endif
