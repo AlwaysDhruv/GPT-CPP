@@ -12,7 +12,7 @@ using namespace std;
 class Multiheadattension
 {
 public:
-	vector<vector<float>> score(vector<vector<vector<float>>> query, vector<vector<vector<float>>> key, vector<vector<vector<float>>> value)
+	vector<vector<float>> score(vector<vector<vector<float>>> query, vector<vector<vector<float>>> key, vector<vector<vector<float>>> value, auto& score)
 	{	
 		int head_size = query.size();
 		int seq_len = query[0].size();
@@ -31,6 +31,8 @@ public:
 			Functions::casual_mask(attension_score, scale);
 			
 			Functions::softmax(attension_score);
+			
+			score[j] = attension_score;
 			
 			A[j] = Tensor::dot_product(attension_score, value[j]);
 		}

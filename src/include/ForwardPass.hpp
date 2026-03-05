@@ -14,7 +14,7 @@
 #include "Attension.hpp"
 #include "ForwardPass.hpp"
 #include "../utils/json.hpp"
-
+#include "../utils/ini.h"
 using namespace std;
 using json = nlohmann::json;
 namespace fs = std::filesystem;
@@ -22,8 +22,17 @@ using ordered_json = nlohmann::ordered_json;
 
 namespace Forward
 {
-	void Layers(auto& X_IN, auto& A, auto& H, auto& z, auto w_query, auto w_key, auto w_value, auto w_output, auto w1, auto w2, auto w_lm, auto b1, auto b2, auto b_lm, int head_size, int vocab_size, int layers)
+
+	void Layers(mINI::INIStructure ini, auto& X_IN, auto& A, auto& H, auto& z, auto& at , auto& score, auto w_query, auto w_key, auto w_value, auto w_output, auto w1, auto w2, auto w_lm, auto b1, auto b2, auto b_lm, auto& val, auto& X_IN2)
 	{
+		int embed_size = stoi(ini["GPT"]["Emdedding_size"]);
+		int head_size = stoi(ini["GPT"]["Head_size"]);\
+		int layers = stoi(ini["GPT"]["Layers"]);
+		int vocab_size = stoi(ini["GPT"]["Vocab_size"]);
+		float learning_rate = stof(ini["GPT"]["Rate"]);
+		int embed_size2 = embed_size * embed_size;
+		int seq_len = X_IN.size();
+
 		for (size_t i = 0; i < layers; ++i)
 		{
 			auto X_NORM = Functions::normalizaion(X_IN);
@@ -36,17 +45,24 @@ namespace Forward
 			auto key = Tensor::reshape_to_multihead(key_raw, head_size);
 			auto value = Tensor::reshape_to_multihead(values_raw, head_size);
 
+			val[i] = value;
+
 			//Attension
 			Multiheadattension block;
 			
-			auto attension = block.score(query, key, value);
+			auto attension = block.score(query, key, value, score[i]);
+			
 			attension = Tensor::dot_product(attension, w_output[i]);
+
+			at[i] = attension;
 
 			auto X_NEW = Tensor::sum(attension, X_IN);
 
 			//FFN
 			X_NORM = Functions::normalizaion(X_NEW);
-
+			
+			X_IN2[i] = X_NORM;
+			
 			auto Z = Tensor::dot_product(X_NORM, w1[i]);
 			Tensor::sum(Z, b1[i]);
 
