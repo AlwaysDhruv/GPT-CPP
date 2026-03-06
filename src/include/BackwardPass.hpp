@@ -99,20 +99,49 @@ namespace Backward
 		return dv_h;
 	}
 
-	void backward_Attension2(auto da_h, auto value, auto score)
+	void backward_Attension2(auto da_h, auto dv, auto X, auto& w_query, auto& w_key, auto& w_value, auto query, auto key, auto value, auto score, int embed_size, auto rate)
 	{
 		int layers = da_h.size();
 		int head_size = da_h[0].size();
-
+		float scale = 1.0f / sqrt(static_cast<float>(embed_size / head_size));
+		
 		for (int i = layers - 1; i >= 0; --i)
 		{
+			vector<vector<vector<float>>> dwq(head_size, vector<vector<float>>(embed_size, vector<float>(embed_size / head_size)));
+			vector<vector<vector<float>>> dwk(head_size, vector<vector<float>>(embed_size, vector<float>(embed_size / head_size)));
+			vector<vector<vector<float>>> dwv(head_size, vector<vector<float>>(embed_size, vector<float>(embed_size / head_size)));
+			vector<vector<float>> dX_layer(27, vector<float>(embed_size, 0.0f));
+
 			for (int j = 0; j < head_size; ++j)
 			{
 				auto value_t = Tensor::transpose(value[i][j]);
 				auto dscore_h = Tensor::dot_product(da_h[i][j],value_t);
-				//Softmax Jacobian
+				auto dz = dscore_h; 
+            	for (int t = 0; t < dz.size(); ++t)
+            	{
+                	float row_dot = 0.0f;
+                	for (int k = 0; k < dz[0].size(); ++k)row_dot += dscore_h[t][k] * score[i][j][t][k];
+                	for (int k = 0; k < dz[0].size(); ++k)
+                	{
+                    	dz[t][k] = score[i][j][t][k] * (dscore_h[t][k] - row_dot);
+                    	dz[t][k] *= scale;
+                	}
+            	}				
+				auto dq = Tensor::dot_product(dz, key[i][j]);
+				auto dz_T = Tensor::transpose(dz);
+				auto dk = Tensor::dot_product(dz_T, query[i][j]);
+				auto X_T = Tensor::transpose(X[i]);
+				dwq[j] = Tensor::dot_product(X_T, dq);
+				dwk[j] = Tensor::dot_product(X_T, dk);
+				dwv[j] = Tensor::dot_product(X_T, dv[i][j]);
 			}
+			auto dwqs = Tensor::reshape_to_singlehead(dwq);
+			auto dwks = Tensor::reshape_to_singlehead(dwk);
+			auto dwvs = Tensor::reshape_to_singlehead(dwv);
+			Functions::update(w_query[i], dwqs, rate);
+			Functions::update(w_key[i], dwks, rate);
+			Functions::update(w_value[i], dwvs, rate);
 		}
-	}
+	}	
 };
 #endif

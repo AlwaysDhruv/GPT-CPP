@@ -23,7 +23,7 @@ using ordered_json = nlohmann::ordered_json;
 namespace Forward
 {
 
-	void Layers(mINI::INIStructure ini, auto& X_IN, auto& A, auto& H, auto& z, auto& at , auto& score, auto w_query, auto w_key, auto w_value, auto w_output, auto w1, auto w2, auto w_lm, auto b1, auto b2, auto b_lm, auto& val, auto& X_IN2)
+	void Layers(mINI::INIStructure ini, auto& X_IN, auto& A, auto& H, auto& z, auto& at , auto& score, auto w_query, auto w_key, auto w_value, auto w_output, auto w1, auto w2, auto w_lm, auto b1, auto b2, auto b_lm, auto& qry, auto& ky, auto& val, auto& X_IN2, auto& X_IN3)
 	{
 		int embed_size = stoi(ini["GPT"]["Emdedding_size"]);
 		int head_size = stoi(ini["GPT"]["Head_size"]);\
@@ -37,6 +37,8 @@ namespace Forward
 		{
 			auto X_NORM = Functions::normalizaion(X_IN);
 
+			X_IN3[i] = X_NORM;
+			
 			auto query_raw = Tensor::dot_product(X_NORM, w_query[i]);
 			auto key_raw   = Tensor::dot_product(X_NORM, w_key[i]);
 			auto values_raw = Tensor::dot_product(X_NORM, w_value[i]);			
@@ -45,6 +47,8 @@ namespace Forward
 			auto key = Tensor::reshape_to_multihead(key_raw, head_size);
 			auto value = Tensor::reshape_to_multihead(values_raw, head_size);
 
+			qry[i] = query;
+			ky[i] = key;
 			val[i] = value;
 
 			//Attension

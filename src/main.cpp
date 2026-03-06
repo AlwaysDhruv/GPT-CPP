@@ -25,7 +25,7 @@ int main(int argc, char const *argv[])
 	if(file.read(ini))
 	{
 		int embed_size = stoi(ini["GPT"]["Emdedding_size"]);
-		int head_size = stoi(ini["GPT"]["Head_size"]);\
+		int head_size = stoi(ini["GPT"]["Head_size"]);
 		int layers = stoi(ini["GPT"]["Layers"]);
 		int vocab_size = stoi(ini["GPT"]["Vocab_size"]);
 		float learning_rate = stof(ini["GPT"]["Rate"]);
@@ -66,13 +66,16 @@ int main(int argc, char const *argv[])
 		vector<vector<vector<float>>> Z(layers, vector<vector<float>>(seq_len,vector<float>(embed_size2, 0.0f)));
 		vector<vector<float>> H(seq_len, vector<float>(embed_size));
 		vector<vector<vector<float>>> X_IN2(layers, vector<vector<float>>(seq_len, vector<float>(embed_size)));
+		vector<vector<vector<float>>> X_IN3(layers, vector<vector<float>>(seq_len, vector<float>(embed_size)));
 
 		vector<vector<vector<float>>> AT(layers, vector<vector<float>>(seq_len,vector<float>(embed_size, 0.0f)));
+		vector<vector<vector<vector<float>>>> query(layers, vector<vector<vector<float>>>(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size, 0.0f))));
+		vector<vector<vector<vector<float>>>> key(layers, vector<vector<vector<float>>>(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size, 0.0f))));
 		vector<vector<vector<vector<float>>>> value(layers, vector<vector<vector<float>>>(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size, 0.0f))));
 		vector<vector<vector<vector<float>>>> score(layers, vector<vector<vector<float>>>(head_size, vector<vector<float>>(seq_len,vector<float>(seq_len, 0.0f))));
 		vector<vector<vector<vector<float>>>> da_h(layers, vector<vector<vector<float>>>(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size, 0.0f))));
 
-		Forward::Layers(ini, X_INT, A, H, Z, AT, score, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm, value, X_IN2);
+		Forward::Layers(ini, X_INT, A, H, Z, AT, score, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm, query, key, value, X_IN2, X_IN3);
 		
 		auto dz = Functions::gradient_loss(X_INT, Y);
 
@@ -81,8 +84,8 @@ int main(int argc, char const *argv[])
 		dh = Backward::backward_FFN(w1, w2, b1, b2, A, Z, AT, X_IN2, dh, learning_rate);
 		
 		auto dv_h = Backward::backward_Attension1(w_output, AT, dh, da_h, score, head_size, learning_rate);
-		
-		Backward::backward_Attension2(da_h, value, score);
+
+		Backward::backward_Attension2(da_h, dv_h, X_IN3, w_query, w_key, w_value, query, key, value, score, embed_size, learning_rate);
 	}
 	else cout << "File Have Problem.." << endl;
 
