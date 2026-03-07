@@ -39,13 +39,16 @@ namespace Forward
 
 			X_IN3[i] = X_NORM;
 			
-			auto query_raw = Tensor::dot_product(X_NORM, w_query[i]);
-			auto key_raw   = Tensor::dot_product(X_NORM, w_key[i]);
-			auto values_raw = Tensor::dot_product(X_NORM, w_value[i]);			
+			vector<vector<vector<float>>> query(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size)));
+			vector<vector<vector<float>>> key(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size)));
+			vector<vector<vector<float>>> value(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size)));			
 			
-			auto query = Tensor::reshape_to_multihead(query_raw, head_size);
-			auto key = Tensor::reshape_to_multihead(key_raw, head_size);
-			auto value = Tensor::reshape_to_multihead(values_raw, head_size);
+			for (int j = 0; j < head_size; ++j)
+			{
+    			query[j] = Tensor::dot_product(X_NORM, w_query[i][j]);
+    			key[j]   = Tensor::dot_product(X_NORM, w_key[i][j]);
+    			value[j] = Tensor::dot_product(X_NORM, w_value[i][j]);
+			}
 
 			qry[i] = query;
 			ky[i] = key;

@@ -143,6 +143,18 @@ namespace Functions
 		return values;
 
 	}
+
+	vector<vector<vector<vector<float>>>> linear3(int layers, int head_size, int rows, int cols)
+	{
+		random_device rd;
+		mt19937 gen(rd());
+		uniform_real_distribution<float> dist(-1.0, 1.0);
+		vector<vector<vector<vector<float>>>>values(layers, vector<vector<vector<float>>>(head_size, vector<vector<float>>(rows, vector<float>(cols, 0.0f))));
+		for (size_t i = 0; i < layers; ++i) for (size_t j = 0; j < head_size; ++j) for (size_t k = 0; k < rows; ++k) for (size_t l = 0; l < cols; ++l) values[i][j][k][l] = round(dist(gen) * 100) / 100;
+		
+		return values;
+
+	}
 	vector<vector<float>> linear2(int cols_size, int rows_size)
 	{
 		random_device rd;
@@ -184,6 +196,11 @@ namespace Functions
 		for (size_t i = 0; i < w.size(); ++i) for (size_t j = 0; j < w[0].size(); ++j) w[i][j] -= rate * dw[i][j];
 	}
 	
+	void update(vector<vector<vector<float>>>& w, vector<vector<vector<float>>>& dw, float rate)
+	{
+    	for (size_t h = 0; h < w.size(); ++h) for (size_t i = 0; i < w[h].size(); ++i) for (size_t j = 0; j < w[h][0].size(); ++j) w[h][i][j] -= rate * dw[h][i][j];
+	}
+
 	void update(vector<float>& b, vector<float> db, float rate)
 	{
 		for (size_t i = 0; i < b.size(); ++i) b[i] -= rate * db[i];

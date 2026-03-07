@@ -38,110 +38,100 @@ namespace Backward
 		return dh;
 	}
 
-	vector<vector<float>> backward_FFN(auto& w1, auto& w2, auto& b1, auto& b2, auto A, auto Z, auto AT, auto X, auto dh, auto rate)
+	vector<vector<float>> backward_Transformer(auto& w1, auto& w2, auto& b1, auto& b2, auto& A, auto& Z, auto& X_FFN, auto& w_output, auto& AT, vector<vector<float>> dh, auto& X_ATTN, auto& w_query, auto& w_key, auto& w_value, auto& query, auto& key, auto& value, auto& score, int embed_size, int head_size, float rate)
 	{
-		auto layers = w2.size() - 1;
+	    int layers = w2.size();
+	    int seq_len = dh.size();
+	    int head_dim = embed_size / head_size;
+	    float scale = 1.0f / sqrt(static_cast<float>(head_dim));
 
-		for (int i = layers; i >= 0; --i)
-		{
-			A[i] = Tensor::transpose(A[i]);
-			auto dw2 = Tensor::dot_product(A[i], dh);
-			auto db2 = Tensor::bias(dh);
+	    for (int i = layers - 1; i >= 0; --i)
+	    {
+	        auto dh_ffn_residual = dh;
 
-			auto w2i = Tensor::transpose(w2[i]);
-			dh = Tensor::dot_product(dh, w2i);
-			
-			Functions::gelu_derivative(Z[i]);
+	        auto A_T = Tensor::transpose(A[i]);
+	        auto dw2 = Tensor::dot_product(A_T, dh);
+	        auto db2 = Tensor::bias(dh);
 
-			auto dz = dh;
-			for (size_t t = 0; t < dz.size(); ++t) for (size_t j = 0; j < dz[0].size(); ++j) dz[t][j] = dz[t][j] * Z[i][t][j];
+	        auto w2_T = Tensor::transpose(w2[i]);
+	        auto d_activation = Tensor::dot_product(dh, w2_T);
+	        
+	        Functions::gelu_derivative(Z[i]);
+	        auto dz_ffn = d_activation;
+	        for (size_t t = 0; t < seq_len; ++t) for (size_t j = 0; j < Z[i][0].size(); ++j) dz_ffn[t][j] *= Z[i][t][j];
 
-			X[i] = Tensor::transpose(X[i]);
-			auto dw1 = Tensor::dot_product(X[i], dz);
-			auto db1 = Tensor::bias(dz);
+	        auto X_FFN_T = Tensor::transpose(X_FFN[i]);
+	        auto dw1 = Tensor::dot_product(X_FFN_T, dz_ffn);
+	        auto db1 = Tensor::bias(dz_ffn);
 
-			auto w1i = Tensor::transpose(w1[i]);
-			dh = Tensor::dot_product(dz, w1i);
+	        auto w1_T = Tensor::transpose(w1[i]);
+	        auto dX_ffn_path = Tensor::dot_product(dz_ffn, w1_T);
 
-			Functions::update(w2[i], dw2, rate);
-			Functions::update(w1[i], dw1, rate);
+	        Functions::update(w2[i], dw2, rate);
+	        Functions::update(w1[i], dw1, rate);
+	        Functions::update(b2[i], db2, rate);
+	        Functions::update(b1[i], db1, rate);
 
-			Functions::update(b2[i], db2, rate);
-			Functions::update(b1[i], db1, rate);
-		}
-		return dh;
-	}
+	        dh = Tensor::sum(dX_ffn_path, dh_ffn_residual);
 
-	vector<vector<vector<vector<float>>>> backward_Attension1(auto& w_output, auto AT, auto dh, auto& da_h, auto score, auto head_size, auto rate)
-	{
-		auto layers = AT.size();
-		vector<vector<vector<vector<float>>>> dv_h(layers, vector<vector<vector<float>>>(head_size, vector<vector<float>>(AT[0].size(),vector<float>(AT[0][0].size() / head_size, 0.0f))));
+	        auto dh_attn_residual = dh;
 
-		for (int i = layers - 1; i >= 0; --i)
-		{
-			auto AT_T = Tensor::transpose(AT[i]);
-			auto dw_output = Tensor::dot_product(AT_T, dh);
+	        auto AT_T = Tensor::transpose(AT[i]);
+	        auto dw_output = Tensor::dot_product(AT_T, dh);
+	        auto w_output_t = Tensor::transpose(w_output[i]);
+	        auto da_concate = Tensor::dot_product(dh, w_output_t);
+	        auto da_concate_m = Tensor::reshape_to_multihead(da_concate, head_size);
 
-			auto w_output_t = Tensor::transpose(w_output[i]);
-			auto da_concate = Tensor::dot_product(dh, w_output_t);
-			
-			auto da_concate_m = Tensor::reshape_to_multihead(da_concate, head_size);
-			da_h[i] = da_concate_m;
-			
-			for (int j = 0; j < head_size; ++j)
-			{
-				auto score_t = Tensor::transpose(score[i][j]);
-				dv_h[i][j] =  Tensor::dot_product(score_t, da_concate_m[j]);
-			}
-			Functions::update(w_output[i], dw_output, rate);
-		}
-		
-		return dv_h;
-	}
+	        vector<vector<vector<float>>> dwq(head_size), dwk(head_size), dwv(head_size);
+	        vector<vector<float>> dX_attn_path(seq_len, vector<float>(embed_size, 0.0f));
 
-	void backward_Attension2(auto da_h, auto dv, auto X, auto& w_query, auto& w_key, auto& w_value, auto query, auto key, auto value, auto score, int embed_size, auto rate)
-	{
-		int layers = da_h.size();
-		int head_size = da_h[0].size();
-		float scale = 1.0f / sqrt(static_cast<float>(embed_size / head_size));
-		
-		for (int i = layers - 1; i >= 0; --i)
-		{
-			vector<vector<vector<float>>> dwq(head_size, vector<vector<float>>(embed_size, vector<float>(embed_size / head_size)));
-			vector<vector<vector<float>>> dwk(head_size, vector<vector<float>>(embed_size, vector<float>(embed_size / head_size)));
-			vector<vector<vector<float>>> dwv(head_size, vector<vector<float>>(embed_size, vector<float>(embed_size / head_size)));
-			vector<vector<float>> dX_layer(27, vector<float>(embed_size, 0.0f));
+	        for (int j = 0; j < head_size; ++j)
+	        {
+	            auto score_t = Tensor::transpose(score[i][j]);
+	            auto dv_head = Tensor::dot_product(score_t, da_concate_m[j]);
 
-			for (int j = 0; j < head_size; ++j)
-			{
-				auto value_t = Tensor::transpose(value[i][j]);
-				auto dscore_h = Tensor::dot_product(da_h[i][j],value_t);
-				auto dz = dscore_h; 
-            	for (int t = 0; t < dz.size(); ++t)
-            	{
-                	float row_dot = 0.0f;
-                	for (int k = 0; k < dz[0].size(); ++k)row_dot += dscore_h[t][k] * score[i][j][t][k];
-                	for (int k = 0; k < dz[0].size(); ++k)
-                	{
-                    	dz[t][k] = score[i][j][t][k] * (dscore_h[t][k] - row_dot);
-                    	dz[t][k] *= scale;
-                	}
-            	}				
-				auto dq = Tensor::dot_product(dz, key[i][j]);
-				auto dz_T = Tensor::transpose(dz);
-				auto dk = Tensor::dot_product(dz_T, query[i][j]);
-				auto X_T = Tensor::transpose(X[i]);
-				dwq[j] = Tensor::dot_product(X_T, dq);
-				dwk[j] = Tensor::dot_product(X_T, dk);
-				dwv[j] = Tensor::dot_product(X_T, dv[i][j]);
-			}
-			auto dwqs = Tensor::reshape_to_singlehead(dwq);
-			auto dwks = Tensor::reshape_to_singlehead(dwk);
-			auto dwvs = Tensor::reshape_to_singlehead(dwv);
-			Functions::update(w_query[i], dwqs, rate);
-			Functions::update(w_key[i], dwks, rate);
-			Functions::update(w_value[i], dwvs, rate);
-		}
+	            auto value_t = Tensor::transpose(value[i][j]);
+	            auto dscore_h = Tensor::dot_product(da_concate_m[j], value_t);
+	            auto dz_attn = dscore_h; 
+	            for (int t = 0; t < seq_len; ++t)
+	            {
+	                float row_dot = 0.0f;
+	                for (int k = 0; k < seq_len; ++k) row_dot += dscore_h[t][k] * score[i][j][t][k];
+	                for (int k = 0; k < seq_len; ++k)
+	                {
+	                    dz_attn[t][k] = score[i][j][t][k] * (dscore_h[t][k] - row_dot);
+	                    dz_attn[t][k] *= scale;
+	                }
+	            }
+
+	            auto dq = Tensor::dot_product(dz_attn, key[i][j]);
+	            auto dz_T = Tensor::transpose(dz_attn);
+	            auto dk = Tensor::dot_product(dz_T, query[i][j]);
+
+	            auto X_ATTN_T = Tensor::transpose(X_ATTN[i]);
+	            dwq[j] = Tensor::dot_product(X_ATTN_T, dq);
+	            dwk[j] = Tensor::dot_product(X_ATTN_T, dk);
+	            dwv[j] = Tensor::dot_product(X_ATTN_T, dv_head);
+	            
+	            auto wq_T = Tensor::transpose(w_query[i][j]);
+	            auto wk_T = Tensor::transpose(w_key[i][j]);
+	            auto wv_T = Tensor::transpose(w_value[i][j]);
+
+	            auto dq_p = Tensor::dot_product(dq, wq_T);
+	            auto dk_p = Tensor::dot_product(dk, wk_T);
+	            auto dv_p = Tensor::dot_product(dv_head, wv_T);
+
+	            for(int t=0; t<seq_len; ++t) for(int d=0; d<head_dim; ++d) dX_attn_path[t][j*head_dim+d] += dq_p[t][d] + dk_p[t][d] + dv_p[t][d];
+	        }
+
+	        Functions::update(w_output[i], dw_output, rate);
+	        Functions::update(w_query[i], dwq, rate);
+	        Functions::update(w_key[i], dwk, rate);
+	        Functions::update(w_value[i], dwv, rate);
+
+	        dh = Tensor::sum(dX_attn_path, dh_attn_residual);
+	    }
+	    return dh;
 	}	
 };
 #endif
