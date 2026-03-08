@@ -81,7 +81,8 @@ namespace Backward
 	        auto w_output_t = Tensor::transpose(w_output[i]);
 	        auto da_concate = Tensor::dot_product(dh, w_output_t);
 	        auto da_concate_m = Tensor::reshape_to_multihead(da_concate, head_size);
-
+			auto X_ATTN_T = Tensor::transpose(X_ATTN[i]);
+	        
 	        vector<vector<vector<float>>> dwq(head_size), dwk(head_size), dwv(head_size);
 	        vector<vector<float>> dX_attn_path(seq_len, vector<float>(embed_size, 0.0f));
 
@@ -108,7 +109,6 @@ namespace Backward
 	            auto dz_T = Tensor::transpose(dz_attn);
 	            auto dk = Tensor::dot_product(dz_T, query[i][j]);
 
-	            auto X_ATTN_T = Tensor::transpose(X_ATTN[i]);
 	            dwq[j] = Tensor::dot_product(X_ATTN_T, dq);
 	            dwk[j] = Tensor::dot_product(X_ATTN_T, dk);
 	            dwv[j] = Tensor::dot_product(X_ATTN_T, dv_head);

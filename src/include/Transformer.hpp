@@ -86,6 +86,7 @@ public:
 			
 			dh = Backward::backward_Transformer(w1, w2, b1, b2, A, Z, X_IN2, w_output, AT, dh, X_IN3, w_query, w_key, w_value, query, key, value, score, embed_size, head_size, learning_rate);
 		}
+		Debug::display(w_query);
 	}
 };
 #endif

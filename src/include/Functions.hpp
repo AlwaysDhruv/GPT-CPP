@@ -125,9 +125,10 @@ namespace Functions
 	{
 		random_device rd;
 		mt19937 gen(rd());
-		uniform_real_distribution<float> dist(-1.0, 1.0);
+		float limit = sqrt(6.0f / (rows_size + cols_size));
+    	uniform_real_distribution<float> dist(-limit, limit);
 		vector<vector<vector<float>>>values(layers, vector<vector<float>>(cols_size, vector<float>(rows_size, 0.0f)));
-		for (size_t i = 0; i < layers; ++i) for (size_t j = 0; j < cols_size; ++j) for (size_t k = 0; k < rows_size; ++k) values[i][j][k] = round(dist(gen) * 100) / 100;
+		for (size_t i = 0; i < layers; ++i) for (size_t j = 0; j < cols_size; ++j) for (size_t k = 0; k < rows_size; ++k) values[i][j][k] = dist(gen);
 		
 		return values;
 	}
@@ -136,9 +137,10 @@ namespace Functions
 	{
 		random_device rd;
 		mt19937 gen(rd());
-		uniform_real_distribution<float> dist(-1.0, 1.0);
+		float limit = sqrt(6.0f / (dim_size + dim_size));
+		uniform_real_distribution<float> dist(-limit, limit);
 		vector<vector<vector<float>>>values(layers, vector<vector<float>>(dim_size, vector<float>(dim_size, 0.0f)));
-		for (size_t i = 0; i < layers; ++i) for (size_t j = 0; j < dim_size; ++j) for (size_t k = 0; k < dim_size; ++k) values[i][j][k] = round(dist(gen) * 100) / 100;
+		for (size_t i = 0; i < layers; ++i) for (size_t j = 0; j < dim_size; ++j) for (size_t k = 0; k < dim_size; ++k) values[i][j][k] = dist(gen);
 		
 		return values;
 
@@ -148,9 +150,10 @@ namespace Functions
 	{
 		random_device rd;
 		mt19937 gen(rd());
-		uniform_real_distribution<float> dist(-1.0, 1.0);
+		float limit = sqrt(6.0f / (rows + cols));
+    	uniform_real_distribution<float> dist(-limit, limit);
 		vector<vector<vector<vector<float>>>>values(layers, vector<vector<vector<float>>>(head_size, vector<vector<float>>(rows, vector<float>(cols, 0.0f))));
-		for (size_t i = 0; i < layers; ++i) for (size_t j = 0; j < head_size; ++j) for (size_t k = 0; k < rows; ++k) for (size_t l = 0; l < cols; ++l) values[i][j][k][l] = round(dist(gen) * 100) / 100;
+		for (size_t i = 0; i < layers; ++i) for (size_t j = 0; j < head_size; ++j) for (size_t k = 0; k < rows; ++k) for (size_t l = 0; l < cols; ++l) values[i][j][k][l] = dist(gen);
 		
 		return values;
 
@@ -159,9 +162,10 @@ namespace Functions
 	{
 		random_device rd;
 		mt19937 gen(rd());
-		uniform_real_distribution<float> dist(-1.0, 1.0);
+		float limit = sqrt(6.0f / (rows_size + cols_size));
+    	uniform_real_distribution<float> dist(-limit, limit);
 		vector<vector<float>>values(cols_size, vector<float>(rows_size, 0.0f));
-		for (size_t j = 0; j < cols_size; ++j) for (size_t k = 0; k < rows_size; ++k) values[j][k] = round(dist(gen) * 100) / 100;
+		for (size_t j = 0; j < cols_size; ++j) for (size_t k = 0; k < rows_size; ++k) values[j][k] = dist(gen);
 		
 		return values;
 	}
