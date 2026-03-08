@@ -121,7 +121,11 @@ namespace Backward
 	            auto dk_p = Tensor::dot_product(dk, wk_T);
 	            auto dv_p = Tensor::dot_product(dv_head, wv_T);
 
-	            for(int t=0; t<seq_len; ++t) for(int d=0; d<head_dim; ++d) dX_attn_path[t][j*head_dim+d] += dq_p[t][d] + dk_p[t][d] + dv_p[t][d];
+				for(int t=0; t<seq_len; ++t) {
+				    for(int d=0; d<embed_size; ++d) {
+				        dX_attn_path[t][d] += dq_p[t][d] + dk_p[t][d] + dv_p[t][d];
+				    }
+				}
 	        }
 
 	        Functions::update(w_output[i], dw_output, rate);
@@ -132,6 +136,6 @@ namespace Backward
 	        dh = Tensor::sum(dX_attn_path, dh_attn_residual);
 	    }
 	    return dh;
-	}	
+	}
 };
 #endif

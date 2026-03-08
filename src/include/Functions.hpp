@@ -174,9 +174,8 @@ namespace Functions
 		return target_ids;
 	}
 
-	vector<vector<float>> gradient_loss(auto forward, auto Y)
+	vector<vector<float>> gradient_loss(auto forward, auto Y, auto& loss)
 	{
-		float loss = 0.0f;
 		auto dz = forward;
 		auto seq_len = forward.size();
 		for (size_t i = 0; i < forward.size(); ++i)

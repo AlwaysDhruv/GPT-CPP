@@ -23,10 +23,10 @@ using ordered_json = nlohmann::ordered_json;
 namespace Forward
 {
 
-	void Layers(mINI::INIStructure ini, auto& X_IN, auto& A, auto& H, auto& z, auto& at , auto& score, auto w_query, auto w_key, auto w_value, auto w_output, auto w1, auto w2, auto w_lm, auto b1, auto b2, auto b_lm, auto& qry, auto& ky, auto& val, auto& X_IN2, auto& X_IN3)
+	vector<vector<float>> Layers(mINI::INIStructure& ini, auto X_IN, auto& A, auto& H, auto& z, auto& at , auto& score, const auto& w_query, const auto& w_key, const auto& w_value, const auto& w_output, const auto& w1, const auto& w2, const auto& w_lm, const auto& b1, const auto& b2, const auto& b_lm, auto& qry, auto& ky, auto& val, auto& X_IN2, auto& X_IN3)
 	{
 		int embed_size = stoi(ini["GPT"]["Emdedding_size"]);
-		int head_size = stoi(ini["GPT"]["Head_size"]);\
+		int head_size = stoi(ini["GPT"]["Head_size"]);
 		int layers = stoi(ini["GPT"]["Layers"]);
 		int vocab_size = stoi(ini["GPT"]["Vocab_size"]);
 		float learning_rate = stof(ini["GPT"]["Rate"]);
@@ -92,6 +92,8 @@ namespace Forward
 		Tensor::sum(X_IN, b_lm);
 		
 		Functions::softmax(X_IN);
+
+		return X_IN;
 	}
 };
 #endif

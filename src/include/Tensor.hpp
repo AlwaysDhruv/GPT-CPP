@@ -53,7 +53,7 @@ namespace Tensor
 		return values;
 	}
 
-   	vector<vector<float>> dot_product(vector<vector<float>>& vector1, vector<vector<float>>& vector2)
+   	vector<vector<float>> dot_product(const vector<vector<float>>& vector1, const vector<vector<float>>& vector2)
 	{
 		vector<vector<float>> vector3(vector1.size(), vector<float>(vector2[0].size(), 0.0f));
 
@@ -95,7 +95,7 @@ namespace Tensor
 		return sumation;
 	}
 	
-	void sum(vector<vector<float>>& vector1, vector<float>& vector2)
+	void sum(vector<vector<float>>& vector1, const vector<float>& vector2)
 	{
 		for (size_t i = 0; i < vector1.size(); ++i) for (size_t j = 0; j < vector2.size(); ++j) vector1[i][j] = vector1[i][j] + vector2[j];
 	}
