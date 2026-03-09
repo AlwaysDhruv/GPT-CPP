@@ -13,6 +13,7 @@ class Transformer
 	int embed_size2;
 	int head_dim;
 	int seq_len;
+	int context_len;
 	vector<long long> token_ids;
 	mINI::INIStructure ini;
 public:
@@ -31,7 +32,8 @@ public:
 			learning_rate = stof(in["GPT"]["Rate"]);
 			embed_size2 = embed_size * embed_size;
 			head_dim = embed_size / head_size;
-			seq_len = token_id.size();
+			context_len = token_id.size();
+			seq_len = context_len - 1;
 			token_ids = token_id;
 			ini = in;
 		}
@@ -39,17 +41,21 @@ public:
 	}
 
 	void fit(int epochs)
-	{
-		vector<long long> X(seq_len - 1);
-		vector<long long> Y(seq_len - 1);
-		for (size_t i = 0; i < seq_len - 1; ++i) X[i] = token_ids[i];
-		for (size_t i = 1; i < seq_len; ++i) Y[i - 1] = token_ids[i];
-		
+	{		
 		Embedd ed;
-		vector<vector<float>> X_IN(seq_len - 1, vector<float>(embed_size, 0.0f));
-		ed.embeddings(X_IN);	
+		
+		ed.init_weights(vocab_size, embed_size);
+		
+		auto X_IN = ed.forward(token_ids);
+
 		ed.positioning_encoding(X_IN);
 		
+		vector<vector<float>> X(seq_len, vector<float>(embed_size));
+		vector<vector<float>> Y(seq_len, vector<float>(embed_size));
+	
+		for (size_t i = 0; i < seq_len; ++i) for (size_t j = 0; j < embed_size; ++j) X[i][j] = X_IN[i][j];
+		for (size_t i = 1; i < context_len; ++i) for (size_t j = 0; j < embed_size; ++j) Y[i - 1][j] = X_IN[i][j];
+
 		auto w_query = Functions::linear3(layers , head_size, embed_size, head_dim);
 		auto w_key = Functions::linear3(layers , head_size, embed_size, head_dim);;
 		auto w_value = Functions::linear3(layers , head_size, embed_size, head_dim);;
@@ -76,7 +82,7 @@ public:
 			vector<vector<vector<vector<float>>>> value(layers, vector<vector<vector<float>>>(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size, 0.0f))));
 			vector<vector<vector<vector<float>>>> score(layers, vector<vector<vector<float>>>(head_size, vector<vector<float>>(seq_len,vector<float>(seq_len, 0.0f))));
 			
-			auto X_INT = Forward::Layers(ini, X_IN, A, H, Z, AT, score, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm, query, key, value, X_IN2, X_IN3);
+			auto X_INT = Forward::Layers(ini, X, A, H, Z, AT, score, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm, query, key, value, X_IN2, X_IN3);
 			
 			auto dz = Functions::gradient_loss(X_INT, Y, loss);
 
@@ -86,7 +92,6 @@ public:
 			
 			dh = Backward::backward_Transformer(w1, w2, b1, b2, A, Z, X_IN2, w_output, AT, dh, X_IN3, w_query, w_key, w_value, query, key, value, score, embed_size, head_size, learning_rate);
 		}
-		Debug::display(w_query);
 	}
 };
 #endif
