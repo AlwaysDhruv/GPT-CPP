@@ -12,27 +12,23 @@ using namespace std;
 
 class Embedd
 {
-	vector<vector<float>> weights;
 public:
 
-	void init_weights(int vocab_size, int embed_size)
+	vector<vector<float>> init_weights(int vocab_size, int embed_size)
     {
-        weights.assign(vocab_size, vector<float>(embed_size, 0.0f));
+        vector<vector<float>> weights(vocab_size, vector<float>(embed_size, 0.0f));
         random_device rd;
         mt19937 gen(rd());
         
-        // Glorot/Xavier Initialization uses Vocab Size, not Seq Len
         float limit = std::sqrt(6.0f / (vocab_size + embed_size));
         uniform_real_distribution<float> dist(-limit, limit);
 
-        for (size_t i = 0; i < vocab_size; ++i) {
-            for (size_t j = 0; j < embed_size; ++j) {
-                weights[i][j] = dist(gen);
-            }
-        }
+        for (size_t i = 0; i < vocab_size; ++i) for (size_t j = 0; j < embed_size; ++j) weights[i][j] = dist(gen);
+
+        return weights;
     }
 
-    vector<vector<float>> forward(const vector<long long>& token_ids)
+    vector<vector<float>> forward(const vector<long long>& token_ids, const vector<vector<float>>& weights)
     {
         int seq_len = token_ids.size();
         int embed_size = weights[0].size();

@@ -15,6 +15,8 @@ class Transformer
 	int seq_len;
 	int context_len;
 	vector<long long> token_ids;
+	vector<long long> X;
+	vector<long long> Y;
 	mINI::INIStructure ini;
 public:
 	
@@ -36,26 +38,20 @@ public:
 			seq_len = context_len - 1;
 			token_ids = token_id;
 			ini = in;
+			X.assign(seq_len, 0);
+			Y.assign(seq_len, 0);
+			for (size_t i = 0; i < seq_len; ++i) X[i] = token_ids[i];
+			for (size_t i = 1; i < context_len; ++i) Y[i - 1] = token_ids[i];
 		}
 		else cout << "File Have Problem.." << endl;
 	}
 
 	void fit(int epochs)
 	{		
-		Embedd ed;
-		
-		ed.init_weights(vocab_size, embed_size);
-		
-		auto X_IN = ed.forward(token_ids);
+		Embedd ed;		
 
-		ed.positioning_encoding(X_IN);
+		auto embbed_matrix = ed.init_weights(vocab_size, embed_size);
 		
-		vector<vector<float>> X(seq_len, vector<float>(embed_size));
-		vector<vector<float>> Y(seq_len, vector<float>(embed_size));
-	
-		for (size_t i = 0; i < seq_len; ++i) for (size_t j = 0; j < embed_size; ++j) X[i][j] = X_IN[i][j];
-		for (size_t i = 1; i < context_len; ++i) for (size_t j = 0; j < embed_size; ++j) Y[i - 1][j] = X_IN[i][j];
-
 		auto w_query = Functions::linear3(layers , head_size, embed_size, head_dim);
 		auto w_key = Functions::linear3(layers , head_size, embed_size, head_dim);;
 		auto w_value = Functions::linear3(layers , head_size, embed_size, head_dim);;
@@ -69,8 +65,9 @@ public:
 
 		for (int epoch = 0; epoch < epochs; ++epoch)
 		{
-			float loss = 0.0f;
-			
+			auto X_IN = ed.forward(X, embbed_matrix);
+			ed.positioning_encoding(X_IN);
+
 			vector<vector<vector<float>>> A(layers, vector<vector<float>>(seq_len,vector<float>(embed_size2, 0.0f)));
 			vector<vector<vector<float>>> Z(layers, vector<vector<float>>(seq_len,vector<float>(embed_size2, 0.0f)));
 			vector<vector<float>> H(seq_len, vector<float>(embed_size));
@@ -81,12 +78,19 @@ public:
 			vector<vector<vector<vector<float>>>> key(layers, vector<vector<vector<float>>>(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size, 0.0f))));
 			vector<vector<vector<vector<float>>>> value(layers, vector<vector<vector<float>>>(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size, 0.0f))));
 			vector<vector<vector<vector<float>>>> score(layers, vector<vector<vector<float>>>(head_size, vector<vector<float>>(seq_len,vector<float>(seq_len, 0.0f))));
-			
-			auto X_INT = Forward::Layers(ini, X, A, H, Z, AT, score, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm, query, key, value, X_IN2, X_IN3);
-			
-			auto dz = Functions::gradient_loss(X_INT, Y, loss);
+			vector<vector<float>> gradients(vocab_size, vector<float>(embed_size, 0.0f));
 
-			cout << "Total Loss :- " << loss << " In " << epoch << " Step.." << endl;
+			auto P = Forward::Layers(ini, X_IN, A, H, Z, AT, score, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm, query, key, value, X_IN2, X_IN3);
+			
+			auto loss = Functions::loss(P, Y);
+
+			cout << "Loss In " << epoch + 1 << " Step :- " << loss << endl;
+			
+			auto dz = Functions::gradient(P, Y);
+			
+			for (int i = 0; i < seq_len; ++i) for (int j = 0; j < embed_size; ++j) gradients[token_ids[i]][j] = dz[i][j];
+			
+			Functions::update(embbed_matrix, gradients, learning_rate);
 
 			auto dh = Backward::backward_LM(w_lm, b_lm, H, dz, learning_rate);
 			

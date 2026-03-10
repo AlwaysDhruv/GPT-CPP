@@ -178,22 +178,21 @@ namespace Functions
 		return target_ids;
 	}
 
-	vector<vector<float>> gradient_loss(auto forward, auto Y, auto& loss)
+	float loss(auto P, auto Y)
 	{
-		auto dz = forward;
-		auto seq_len = forward.size();
-		for (size_t i = 0; i < forward.size(); ++i)
-		{
-			auto target_id = Y[i];
-			
-			loss += -log(forward[i][target_id] + 1e-9f);
-			dz[i][target_id] -= 1.0f;
-			
-			for (size_t j = 0; j < forward[i].size(); ++j) dz[i][j] /= (float)seq_len;
-		}
-		return dz;
+		auto seq_len = P.size();
+		float loss = 0.0f;
+		for (size_t i = 0; i < P.size(); ++i) loss += -log(P[i][Y[i]] + 1e-9f);	
+		return loss / seq_len;
 	}
 	
+	vector<vector<float>> gradient(auto P, auto Y)
+	{
+		auto dz = P;
+		for (int i = 0; i < P.size(); ++i) dz[i][Y[i]] -= 1;
+		return dz;
+	}
+
 	void update(vector<vector<float>>& w, vector<vector<float>> dw, float rate)
 	{
 		for (size_t i = 0; i < w.size(); ++i) for (size_t j = 0; j < w[0].size(); ++j) w[i][j] -= rate * dw[i][j];
