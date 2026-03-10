@@ -2,6 +2,11 @@
 #define TRANSFORMER_H
 
 #include "../utils/ini.h"
+#include <iostream>
+#include <fstream>
+#include "../utils/json.hpp"
+
+using json = nlohmann::json;
 
 class Transformer
 {
@@ -95,6 +100,48 @@ public:
 			auto dh = Backward::backward_LM(w_lm, b_lm, H, dz, learning_rate);
 			
 			dh = Backward::backward_Transformer(w1, w2, b1, b2, A, Z, X_IN2, w_output, AT, dh, X_IN3, w_query, w_key, w_value, query, key, value, score, embed_size, head_size, learning_rate);
+		}
+		
+		
+		while(true)
+		{
+			int n;
+			cout << "1. Predict For press[1] :- " << endl;
+			cout << "1. Exit For press[0] :- " << endl;
+			cout << "Enter your choice :- ";
+			cin >> n;
+			if (n==1)
+			{	
+				Tokenize tk;
+				json data;
+
+				std::ifstream file("../model/vocab.json");
+				file >> data;
+				file.close();
+
+				vector<string> tokens;
+				vector<long long> tokenid;
+				tk.encoding("../data/test2.txt", tokens, tokenid);
+				
+				auto X_IN = ed.forward(tokenid, embbed_matrix);
+				ed.positioning_encoding(X_IN);
+
+				auto P = Forward::predict(ini, X_IN, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm);
+			
+				int last = P.size() - 1;
+
+				int index = max_element(P[last].begin(), P[last].end()) - P[last].begin();
+
+		    	for (auto& [key, val] : data.items())
+		    	{
+		        	if (val == index)
+		        	{
+		            	cout << key << endl;
+		            	break;
+		        	}
+		    	}
+			}
+			else break;
 		}
 	}
 };

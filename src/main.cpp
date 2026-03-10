@@ -24,9 +24,9 @@ int main(int argc, char const *argv[])
 	Tokenize tk;
 	vector<string> tokens;
 	vector<long long> token_ids;
-	tk.encoding("../data/test2.txt", tokens, token_ids);
+	tk.encoding("../data/test.txt", tokens, token_ids);
 	//cout << token_ids.size() << endl;
 	Transformer tr(token_ids);
-	tr.fit(100);
+	tr.fit(7);
 	return 0;
 }
