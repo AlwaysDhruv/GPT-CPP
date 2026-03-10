@@ -43,20 +43,16 @@ public:
         return values;
     }
     	
-    void positioning_encoding(vector<vector<float>>& embedding)
-	{
-		int dim = embedding[0].size();
-		
-		for (size_t i = 0; i < embedding.size(); ++i)
-		{
-			float values;
-			for (size_t j = 0; j < embedding[i].size(); ++j)
-			{
-				if (j % 2 == 0) embedding[i][j] = embedding[i][j] + sin(i / pow(10000.0, j / (float)dim));
-				else embedding[i][j] = embedding[i][j] + cos(i / pow(10000.0, (j - 1) / (float)dim));
-			}
-		}
-	}
+    void positioning_encoding(vector<vector<float>>& embedding, const vector<vector<float>>& pos_weights)
+    {
+        for (size_t i = 0; i < embedding.size(); ++i)
+        {
+            for (size_t j = 0; j < embedding[i].size(); ++j)
+            {
+                embedding[i][j] += pos_weights[i][j];
+            }
+        }
+    }
 };
 
 #endif

@@ -23,7 +23,7 @@ using ordered_json = nlohmann::ordered_json;
 namespace Forward
 {
 
-	vector<vector<float>> Layers(mINI::INIStructure& ini, auto X_IN, auto& A, auto& H, auto& z, auto& at , auto& score, const auto& w_query, const auto& w_key, const auto& w_value, const auto& w_output, const auto& w1, const auto& w2, const auto& w_lm, const auto& b1, const auto& b2, const auto& b_lm, auto& qry, auto& ky, auto& val, auto& X_IN2, auto& X_IN3)
+	vector<vector<float>> Layers(mINI::INIStructure& ini, auto X_IN, auto& A, auto& H, auto& z, auto& at , auto& score, const auto& w_query, const auto& w_key, const auto& w_value, const auto& w_output, const auto& w1, const auto& w2, auto embbed_matrix, const auto& b1, const auto& b2, const auto& b_lm, auto& qry, auto& ky, auto& val, auto& X_IN2, auto& X_IN3)
 	{
 		int embed_size = stoi(ini["GPT"]["Emdedding_size"]);
 		int head_size = stoi(ini["GPT"]["Head_size"]);
@@ -88,7 +88,9 @@ namespace Forward
 
 		H = X_IN;
 
-		X_IN = Tensor::dot_product(X_IN, w_lm);
+		vector<vector<float>> embbed_T = Tensor::transpose(embbed_matrix);
+		
+		X_IN = Tensor::dot_product(X_IN, embbed_T);
 		Tensor::sum(X_IN, b_lm);
 		
 		Functions::softmax(X_IN);
@@ -100,7 +102,7 @@ namespace Forward
 		auto X_IN, const auto& w_query,
 		const auto& w_key, const auto& w_value,
 		const auto& w_output, const auto& w1,
-		const auto& w2, const auto& w_lm, const auto& b1, const auto& b2, const auto& b_lm)
+		const auto& w2, auto embbed_matrix, const auto& b1, const auto& b2, const auto& b_lm)
 	{
 		int embed_size = stoi(ini["GPT"]["Emdedding_size"]);
 		int head_size = stoi(ini["GPT"]["Head_size"]);
@@ -150,7 +152,9 @@ namespace Forward
 		
 		X_IN = Functions::normalizaion(X_IN);
 
-		X_IN = Tensor::dot_product(X_IN, w_lm);
+		vector<vector<float>> embbed_T = Tensor::transpose(embbed_matrix);
+		
+		X_IN = Tensor::dot_product(X_IN, embbed_matrix);
 		Tensor::sum(X_IN, b_lm);
 		
 		Functions::softmax(X_IN);
