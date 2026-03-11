@@ -17,7 +17,6 @@ public:
 		int head_size = query.size();
 		int seq_len = query[0].size();
 		int v_dim = value[0][0].size();
-
 		float scale = 1.0f / sqrt(static_cast<float>(v_dim));
 
 		vector<vector<vector<float>>> A(head_size, vector<vector<float>>(seq_len, vector<float>(v_dim)));

@@ -62,6 +62,7 @@ public:
 		auto w_key = Functions::linear3(layers , head_size, embed_size, head_dim);;
 		auto w_value = Functions::linear3(layers , head_size, embed_size, head_dim);;
 		auto w_output = Functions::linear(layers, embed_size);
+		auto w_lm = Functions::linear2(embed_size, vocab_size);
 		auto w1 = Functions::linear(layers, embed_size, embed_size2);
 		auto w2 = Functions::linear(layers, embed_size2, embed_size);
 		vector<vector<float>>b1(layers, vector<float>(embed_size2, 0.0f));
@@ -83,9 +84,9 @@ public:
 			vector<vector<vector<vector<float>>>> key(layers, vector<vector<vector<float>>>(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size, 0.0f))));
 			vector<vector<vector<vector<float>>>> value(layers, vector<vector<vector<float>>>(head_size ,vector<vector<float>>(seq_len,vector<float>(embed_size / head_size, 0.0f))));
 			vector<vector<vector<vector<float>>>> score(layers, vector<vector<vector<float>>>(head_size, vector<vector<float>>(seq_len,vector<float>(seq_len, 0.0f))));
-			vector<vector<float>> grad_embed(vocab_size, vector<float>(embed_size, 0.0f));
+			vector<vector<float>> gradients(vocab_size, vector<float>(embed_size, 0.0f));
 
-			auto P = Forward::Layers(ini, X_IN, A, H, Z, AT, score, w_query, w_key, w_value, w_output, w1, w2, embbed_matrix, b1, b2, b_lm, query, key, value, X_IN2, X_IN3);
+			auto P = Forward::Layers(ini, X_IN, A, H, Z, AT, score, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm, query, key, value, X_IN2, X_IN3);
 			
 			auto loss = Functions::loss(P, Y);
 
@@ -93,18 +94,18 @@ public:
 			
 			auto dz = Functions::gradient(P, Y);
 			
-			for (int i = 0; i < seq_len; ++i) for (int j = 0; j < embed_size; ++j) grad_embed[token_ids[i]][j] = dz[i][j];
+			auto dz_t = Tensor::transpose(dz);
+
+			gradients = Tensor::dot_product(dz_t, H);
+
+			auto dh = Backward::backward_LM(w_lm, b_lm, H, dz, learning_rate);
 			
-			vector<vector<float>> dh(seq_len, vector<float>(embed_size, 0.0f));			
-			
-			Backward::backward_LM(embbed_matrix, b_lm, H, dz, learning_rate, grad_embed, dh);
-			
-			vector<vector<float>> grad_pos = dh;
-			
+			auto grad_pos = dh;
+
 			dh = Backward::backward_Transformer(w1, w2, b1, b2, A, Z, X_IN2, w_output, AT, dh, X_IN3, w_query, w_key, w_value, query, key, value, score, embed_size, head_size, learning_rate);
-			
-			Functions::update(embbed_matrix, grad_embed, learning_rate);
-    		Functions::update(pos_matrix, grad_pos, learning_rate);
+
+			Functions::update(embbed_matrix, gradients, learning_rate);
+			Functions::update(pos_matrix, grad_pos, learning_rate);
 		}
 	}
 };

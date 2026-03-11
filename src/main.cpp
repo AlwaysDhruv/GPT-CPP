@@ -27,6 +27,6 @@ int main(int argc, char const *argv[])
 	tk.encoding("../data/test.txt", tokens, token_ids);
 	//cout << token_ids.size() << endl;
 	Transformer tr(token_ids);
-	tr.fit(7);
+	tr.fit(10);
 	return 0;
 }
