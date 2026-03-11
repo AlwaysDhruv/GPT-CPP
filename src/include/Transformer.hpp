@@ -62,16 +62,17 @@ public:
 		auto w_key = Functions::linear3(layers , head_size, embed_size, head_dim);;
 		auto w_value = Functions::linear3(layers , head_size, embed_size, head_dim);;
 		auto w_output = Functions::linear(layers, embed_size);
-		auto w_lm = Functions::linear2(embed_size, vocab_size);
 		auto w1 = Functions::linear(layers, embed_size, embed_size2);
 		auto w2 = Functions::linear(layers, embed_size2, embed_size);
 		vector<vector<float>>b1(layers, vector<float>(embed_size2, 0.0f));
 		vector<vector<float>>b2(layers, vector<float>(embed_size, 0.0f));
 		vector<float>b_lm(vocab_size, 0.0f);
-
+		vector<vector<float>> gamma(layers, vector<float>(embed_size, 1.0f));
+		vector<vector<float>> beta(layers, vector<float>(embed_size, 0.0f));		
+		
 		for (int epoch = 0; epoch < epochs; ++epoch)
 		{
-			auto X_IN = ed.forward(X, embbed_matrix);
+			auto X_IN = ed.forward(X, embbed_matrix);	
 			ed.positioning_encoding(X_IN, pos_matrix);
 
 			vector<vector<vector<float>>> A(layers, vector<vector<float>>(seq_len,vector<float>(embed_size2, 0.0f)));
@@ -86,8 +87,8 @@ public:
 			vector<vector<vector<vector<float>>>> score(layers, vector<vector<vector<float>>>(head_size, vector<vector<float>>(seq_len,vector<float>(seq_len, 0.0f))));
 			vector<vector<float>> gradients(vocab_size, vector<float>(embed_size, 0.0f));
 
-			auto P = Forward::Layers(ini, X_IN, A, H, Z, AT, score, w_query, w_key, w_value, w_output, w1, w2, w_lm, b1, b2, b_lm, query, key, value, X_IN2, X_IN3);
-			
+			auto P = Forward::Layers(ini, X_IN, A, H, Z, AT, score, w_query, w_key, w_value, w_output, w1, w2, embbed_matrix, b1, b2, b_lm, query, key, value, X_IN2, X_IN3);
+					
 			auto loss = Functions::loss(P, Y);
 
 			cout << "Loss In " << epoch + 1 << " Step :- " << loss << endl;
@@ -97,8 +98,10 @@ public:
 			auto dz_t = Tensor::transpose(dz);
 
 			gradients = Tensor::dot_product(dz_t, H);
+			
+			auto dh = Tensor::dot_product(dz, embbed_matrix);
 
-			auto dh = Backward::backward_LM(w_lm, b_lm, H, dz, learning_rate);
+			auto db_lm = Tensor::bias(dz);
 			
 			auto grad_pos = dh;
 
@@ -106,6 +109,7 @@ public:
 
 			Functions::update(embbed_matrix, gradients, learning_rate);
 			Functions::update(pos_matrix, grad_pos, learning_rate);
+			Functions::update(b_lm, db_lm, learning_rate);
 		}
 	}
 };

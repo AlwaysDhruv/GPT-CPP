@@ -10,7 +10,7 @@
 #include "./include/Tensor.hpp"
 #include "./include/Display.hpp"
 #include "./include/Functions.hpp"
-#include "./include/Attension.hpp"
+#include "./include/Attention.hpp"
 #include "./include/ForwardPass.hpp"
 #include "./include/BackwardPass.hpp"
 #include "./include/Transformer.hpp"

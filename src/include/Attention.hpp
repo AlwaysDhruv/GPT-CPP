@@ -17,6 +17,7 @@ public:
 		int head_size = query.size();
 		int seq_len = query[0].size();
 		int v_dim = value[0][0].size();
+		
 		float scale = 1.0f / sqrt(static_cast<float>(v_dim));
 
 		vector<vector<vector<float>>> A(head_size, vector<vector<float>>(seq_len, vector<float>(v_dim)));
@@ -27,7 +28,9 @@ public:
 			
 			vector<vector<float>>attension_score = Tensor::dot_product(query[j], kT);
 			
-			Functions::casual_mask(attension_score, scale);
+			Functions::scaling(attension_score, scale);
+
+			Functions::causal_mask(attension_score);
 			
 			Functions::softmax(attension_score);
 			
@@ -47,7 +50,7 @@ public:
 		int seq_len = query[0].size();
 		int v_dim = value[0][0].size();
 
-		float scale = 1.0f / sqrt(static_cast<float>(v_dim));
+		float scale = sqrt(static_cast<float>(v_dim));
 
 		vector<vector<vector<float>>> A(head_size, vector<vector<float>>(seq_len, vector<float>(v_dim)));
 
@@ -57,7 +60,7 @@ public:
 			
 			vector<vector<float>>attension_score = Tensor::dot_product(query[j], kT);
 			
-			Functions::casual_mask(attension_score, scale);
+			Functions::causal_mask(attension_score);
 			
 			Functions::softmax(attension_score);
 			

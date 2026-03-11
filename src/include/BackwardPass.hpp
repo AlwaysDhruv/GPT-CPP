@@ -10,34 +10,6 @@ using namespace std;
 
 namespace Backward
 {
-	vector<vector<float>> backward_LM(auto& w_lm, auto& b_lm, auto H, auto dz, auto rate)
-	{
-		auto seq_len = dz.size();
-    	auto vocab_size = dz[0].size();
-    	auto hidden_dim = H[0].size();
-
-    	H = Tensor::transpose(H);
-    	
-    	auto dw_lm = Tensor::dot_product(H, dz);
-    	auto db_lm = Tensor::bias(dz);
-    	
-    	vector<vector<float>> dh(seq_len, vector<float>(hidden_dim, 0.0f));
-		for (size_t t = 0; t < seq_len; ++t)
-		{
-			for (size_t i = 0; i < hidden_dim; ++i)
-			{
-				float sum = 0.0;
-				for (size_t j = 0; j < vocab_size; ++j) sum += dz[t][j] * w_lm[i][j];
-				dh[t][i] = sum;
-			}
-		}
-		
-		Functions::update(w_lm, dw_lm, rate);
-		Functions::update(b_lm, db_lm, rate);
-		
-		return dh;
-	}
-
 	vector<vector<float>> backward_Transformer(auto& w1, auto& w2, auto& b1, auto& b2, auto& A, auto& Z, auto& X_FFN, auto& w_output, auto& AT, vector<vector<float>> dh, auto& X_ATTN, auto& w_query, auto& w_key, auto& w_value, auto& query, auto& key, auto& value, auto& score, int embed_size, int head_size, float rate)
 	{
 	    int layers = w2.size();
