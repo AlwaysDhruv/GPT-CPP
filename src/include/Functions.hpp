@@ -11,9 +11,6 @@ using namespace std;
 
 namespace Functions
 {
-
-    /* ---------------- CAUSAL MASK ---------------- */
-
     void causal_mask(vector<vector<float>>& attention_score)
     {
         for (size_t i = 0; i < attention_score.size(); ++i)
@@ -21,16 +18,12 @@ namespace Functions
                 if (j > i) attention_score[i][j] = -1e9f;
     }
 
-    /* ---------------- SCALING ---------------- */
-
     void scaling(vector<vector<float>>& attention_score, float scale)
     {
         for (size_t i = 0; i < attention_score.size(); ++i)
             for (size_t j = 0; j < attention_score[i].size(); ++j)
                 attention_score[i][j] *= scale;
     }
-
-    /* ---------------- SOFTMAX ---------------- */
 
     void softmax(vector<vector<float>>& matrix)
     {
@@ -55,9 +48,7 @@ namespace Functions
                 matrix[i][j] /= sum + 1e-9f;
         }
     }
-
-    /* ---------------- GELU ---------------- */
-
+    
     float gelu_single(float x)
     {
         const float sqrt_2_over_pi = 0.79788456f;
@@ -101,8 +92,6 @@ namespace Functions
                 H[i][j] = gelu_der(H[i][j]);
     }
 
-    /* ---------------- MEAN & VARIANCE ---------------- */
-
     float mean(const vector<float>& v)
     {
         float sum = 0.0f;
@@ -118,9 +107,7 @@ namespace Functions
 
         return sum / v.size();
     }
-
-    /* ---------------- LAYER NORMALIZATION ---------------- */
-
+    
     vector<vector<float>> normalization(const vector<vector<float>>& X)
     {
         const float eps = 1e-5f;
@@ -212,9 +199,7 @@ namespace Functions
 
         return values;
     }
-
-    /* ---------------- TARGET SHIFT ---------------- */
-
+    
     vector<long long> target_shift(const vector<long long>& tokens)
     {
         vector<long long> target(tokens.size() - 1);
@@ -224,9 +209,7 @@ namespace Functions
 
         return target;
     }
-
-    /* ---------------- LOSS ---------------- */
-
+    
     float loss(const vector<vector<float>>& P,
                const vector<long long>& Y)
     {
@@ -238,8 +221,6 @@ namespace Functions
         return L / P.size();
     }
 
-    /* ---------------- GRADIENT ---------------- */
-
     vector<vector<float>> gradient(vector<vector<float>> P,
                                    const vector<long long>& Y)
     {
@@ -248,8 +229,6 @@ namespace Functions
 
         return P;
     }
-
-    /* ---------------- PARAMETER UPDATE ---------------- */
 
     void update(vector<vector<float>>& W,
                 const vector<vector<float>>& dW,
