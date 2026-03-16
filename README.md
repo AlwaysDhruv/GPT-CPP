@@ -1,2 +1,2 @@
 # GPT-CPP
-Generative Pretrained Transformer.
+GPT style transfomer implemented from scratch in C++.
