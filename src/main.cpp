@@ -1,31 +1,17 @@
 #include <iostream>
-#include <iomanip>
-#include <random>
 #include <string>
 #include <vector>
-#include <cmath>
-
 #include "./include/BPE.hpp"
-#include "./include/Embedding.hpp"
-#include "./include/Tensor.hpp"
-#include "./include/Display.hpp"
-#include "./include/Functions.hpp"
-#include "./include/Attention.hpp"
-#include "./include/ForwardPass.hpp"
-#include "./include/BackwardPass.hpp"
 #include "./include/Transformer.hpp"
-#include "./utils/ini.h"
-
 using namespace std;
 
 int main(int argc, char const *argv[])
 {
-
-	Tokenize tk;
+	Tokenization tk;
 	vector<string> tokens;
 	vector<long long> token_ids;
+	//tk.fit("../data/test.txt", 72);
 	tk.encoding("../data/test.txt", tokens, token_ids);
-	Transformer tr(token_ids);
-	tr.fit(10);
+	Transformer tr;
 	return 0;
 }

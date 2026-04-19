@@ -4,6 +4,7 @@
 |  _ \| |_) |  _| |______| | |/ _ \ / _ \| '_ \ / _ \ '__| |_  / _ \ \  
 | |_) |  __/| |___       | | | (_) | (_) | | | |  __/ |  | |/ /  __/ /  
 |____/|_|   |_____|      |_|  \___/ \___/|_| |_|\___|_|  |_/___\___/_/   
+
 [BPE-Tokenization]
 */
 
@@ -29,7 +30,7 @@ struct Frequency
     long long token1, token2, ct, merge;
 };
 
-class Tokenize
+class Tokenization
 {
 	private:
 		
@@ -263,7 +264,6 @@ class Tokenize
 		        for(auto& [key, values] : data.items()) vcb[key] = values.get<long long>();
 		
 		        cout << "Data Fetched Sucessfully.." << endl;
-		
 		    }
 		    else
 		    {
@@ -395,6 +395,7 @@ class Tokenize
 	
 		void pairs_to_most_frequent_merge(vector<vector<long long>>& pairs, unordered_map<string, long long>& vcb, long long n)
 		{
+			int size = pairs.size();
 		    for (size_t i = 0; i < n; ++i)
 		    {
 		        try
@@ -422,7 +423,6 @@ class Tokenize
 		                for (size_t j = 0; j < fre.size() - i - 1; ++j)
 		                    if (fre[j].ct < fre[j + 1].ct) swap(fre[j], fre[j + 1]);
 		                               
-		            	            
 		            ifstream vocab(vocablury);
 		            
 		            if (!vocab.is_open()) cout << "vocab.json Can Not Open " << endl;
@@ -460,7 +460,9 @@ class Tokenize
 		                        merges_file << tk1 << " " << tk2 << endl;            
 		                        merges_file.close();
 		                    }    
-  				            cout << i + 1 << ". " << tk1 << " : " << fre[0].token1 << " & " << tk2 << " : " << fre[0].token2 << " => "<< tk << " : " << fre[0].merge << endl;				            
+		        
+				            cout << i + 1 << ". " << tk1 << " : " << fre[0].token1 << " & " << tk2 << " : " << fre[0].token2 << " => "<< tk << " : " << fre[0].merge << endl; 
+				            
 				            if (pairs.size() != 1)
 				            {
 				                for (size_t i = 0; i < pairs.size(); ++i)
@@ -506,6 +508,7 @@ class Tokenize
 		            cerr << "Error: " << e.what() << endl;
 		        }
 		    }
-		}	
+			cout << endl << endl << "Training complete " << n << " times with " << size << " pairs that stored in model directory..." << endl;
+		}
 };
 #endif
