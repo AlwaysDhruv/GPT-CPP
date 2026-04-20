@@ -6,6 +6,7 @@
 #include "../utils/ini.h"
 #include "Initilization.hpp"
 #include "Display.hpp"
+#include <cuda_runtime.h>
 
 class Transformer
 {
@@ -52,6 +53,24 @@ public:
 		}
 		Debug::shape(context);
 		Debug::shape(position_matirx);
+		
+		int deviceCount = 0;
+    	cudaError_t error = cudaGetDeviceCount(&deviceCount);
+
+	    if (error != cudaSuccess) {
+	        std::cout << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+	    }
+
+	    if (deviceCount == 0) {
+	        std::cout << "No NVIDIA GPUs found." << std::endl;
+	    } else {
+	        std::cout << "Found " << deviceCount << " GPU(s)." << std::endl;
+	        for (int i = 0; i < deviceCount; ++i) {
+	            cudaDeviceProp prop;
+	            cudaGetDeviceProperties(&prop, i);
+	            std::cout << "Device " << i << ": " << prop.name << std::endl;
+	        }
+	    }
 	}
 };
 

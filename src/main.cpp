@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include "./include/BPE.hpp"
-#include "./include/Transformer.hpp"
+#include "./include/Transformer.cu"
 using namespace std;
 
 int main(int argc, char const *argv[])

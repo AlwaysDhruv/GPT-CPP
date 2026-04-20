@@ -469,27 +469,27 @@ class Tokenization
 				                {
 				                    if (pairs[i][0]==fre[0].token1 && pairs[i][1]==fre[0].token2)
 				                    {
-				                        std::erase(pairs[i], fre[0].token1);
-				                        std::erase(pairs[i], fre[0].token2);
+				                        erase(pairs[i], fre[0].token1);
+				                        erase(pairs[i], fre[0].token2);
 				                        pairs[i].insert(pairs[i].begin(), fre[0].merge);
 				                        if (i==0)
 				                        {
-				                            std::erase(pairs[i], fre[0].merge);
+				                            erase(pairs[i], fre[0].merge);
 				                            auto it = find(pairs[i + 1].begin(), pairs[i + 1].end(), fre[0].token2);
 				                            if (it != pairs[i + 1].end()) pairs[i + 1].erase(it);
 				                            pairs[i + 1].insert(pairs[i + 1].begin(), fre[0].merge);
 				                        }
 				                        else if(i == (pairs.size() - 1))
 				                        {
-				                            std::erase(pairs[i], fre[0].merge);
-				                            std::erase(pairs[i - 1], fre[0].token1);
+				                            erase(pairs[i], fre[0].merge);
+				                            erase(pairs[i - 1], fre[0].token1);
 				                            pairs[i - 1].insert(pairs[i - 1].begin(), fre[0].merge);
 				                        }
 				                        else
 				                        {
-				                            std::erase(pairs[i], fre[0].merge);
-				                            std::erase(pairs[i - 1], fre[0].token1);
-				                            std::erase(pairs[i + 1], fre[0].token2);
+				                            erase(pairs[i], fre[0].merge);
+				                            erase(pairs[i - 1], fre[0].token1);
+				                            erase(pairs[i + 1], fre[0].token2);
 				                            pairs[i - 1].insert(pairs[i - 1].end(), fre[0].merge);
 				                            pairs[i + 1].insert(pairs[i + 1].begin(), fre[0].merge);
 				                        }
