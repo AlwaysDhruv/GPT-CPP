@@ -54,6 +54,7 @@ public:
 		Debug::shape(context);
 		Debug::shape(position_matirx);
 		auto X = GPU::add(context, position_matirx);
+    Debug::shape(X);
 	}
 };
 
