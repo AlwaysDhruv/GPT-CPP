@@ -6,6 +6,7 @@
 #include "../utils/ini.h"
 #include "Initilization.hpp"
 #include "Display.hpp"
+#include "Tensor.cuh"
 #include <cuda_runtime.h>
 
 class Transformer
@@ -40,37 +41,19 @@ public:
 		auto embed_matirx = Initial::weights(embed_size * vocab_size);
 		auto position_matirx = Initial::weights(seq_lengh * embed_size);
 		
-		vector<vector<float>> context;
-		context.reserve(seq_lengh);
+		vector<float> context;
+		context.reserve(seq_lengh * embed_size);
 
 		for (int i = 0; i < seq_lengh; ++i)
 		{
 			int temp_index = (token_ids[i] - 1) * embed_size;
 			vector<float> v;
 			v.reserve(embed_size);
-			for (int j = temp_index, k = 0; j < temp_index + embed_size, k < embed_size; ++j, ++k) v.push_back(embed_matirx[j]);
-			context.push_back(v);
+			for (int j = temp_index, k = 0; j < temp_index + embed_size, k < embed_size; ++j, ++k) context.push_back(embed_matirx[j]);
 		}
 		Debug::shape(context);
 		Debug::shape(position_matirx);
-		
-		int deviceCount = 0;
-    	cudaError_t error = cudaGetDeviceCount(&deviceCount);
-
-	    if (error != cudaSuccess) {
-	        std::cout << "CUDA error: " << cudaGetErrorString(error) << std::endl;
-	    }
-
-	    if (deviceCount == 0) {
-	        std::cout << "No NVIDIA GPUs found." << std::endl;
-	    } else {
-	        std::cout << "Found " << deviceCount << " GPU(s)." << std::endl;
-	        for (int i = 0; i < deviceCount; ++i) {
-	            cudaDeviceProp prop;
-	            cudaGetDeviceProperties(&prop, i);
-	            std::cout << "Device " << i << ": " << prop.name << std::endl;
-	        }
-	    }
+		auto X = GPU::add(context, position_matirx);
 	}
 };
 
