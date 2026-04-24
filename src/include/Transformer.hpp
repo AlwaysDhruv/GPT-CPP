@@ -3,10 +3,9 @@
 
 #include <iostream>
 #include <fstream>
-#include "../utils/ini.h"
-#include "Initilization.hpp"
 #include "Display.hpp"
 #include "Tensor.cuh"
+#include "../utils/ini.h"
 #include <cuda_runtime.h>
 
 class Transformer
@@ -38,23 +37,18 @@ public:
 
 	void ready()
 	{
-		auto embed_matirx = Initial::weights(embed_size * vocab_size);
-		auto position_matirx = Initial::weights(seq_lengh * embed_size);
+		auto embed_matirx = GPU::random(embed_size * vocab_size);
+		auto position_matirx = GPU::random(seq_lengh * embed_size);
 		
 		vector<float> context;
 		context.reserve(seq_lengh * embed_size);
 
 		for (int i = 0; i < seq_lengh; ++i)
 		{
-			int temp_index = (token_ids[i] - 1) * embed_size;
-			vector<float> v;
-			v.reserve(embed_size);
-			for (int j = temp_index, k = 0; j < temp_index + embed_size, k < embed_size; ++j, ++k) context.push_back(embed_matirx[j]);
+			int temp_index = (token_ids[i]) * embed_size;
+			for (int j = temp_index; j < temp_index + embed_size; ++j) context.push_back(embed_matirx[j]);
 		}
-		Debug::shape(context);
-		Debug::shape(position_matirx);
 		auto X = GPU::add(context, position_matirx);
-    Debug::shape(X);
 	}
 };
 

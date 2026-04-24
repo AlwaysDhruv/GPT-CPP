@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cuda_runtime.h>
+#include <curand_kernel.h>
 
 namespace GPU
 {
@@ -11,6 +12,39 @@ namespace GPU
         int i = blockIdx.x * blockDim.x + threadIdx.x;
         if (i < N)
             C[i] = A[i] + B[i];
+    }
+
+    __global__ void random_kernel(float *data, curandState *states, int N)
+    {
+        int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (i < N)
+        {
+            curand_init(1234, i, 0, &states[i]);
+            data[i] = curand_uniform(&states[i]);
+        }
+    }
+
+    inline std::vector<float> random(int N)
+    {
+        float *d_data;
+        curandState *d_states;
+
+        cudaMalloc(&d_data, N * sizeof(float));
+        cudaMalloc(&d_states, N * sizeof(curandState));
+
+        int threads = 256;
+        int blocks = (N + threads - 1) / threads;
+
+        random_kernel<<<blocks, threads>>>(d_data, d_states, N);
+
+        std::vector<float> h_data(N);
+        cudaMemcpy(h_data.data(), d_data, N * sizeof(float), cudaMemcpyDeviceToHost);
+
+        cudaFree(d_data);
+        cudaFree(d_states);
+
+        return h_data;
     }
 
     inline std::vector<float> add(const std::vector<float>& A,
