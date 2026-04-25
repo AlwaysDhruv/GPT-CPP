@@ -3,17 +3,18 @@
 
 #include <iostream>
 #include <fstream>
+#include "Tensor.hpp"
 #include "Display.hpp"
-#include "Tensor.cuh"
 #include "../utils/ini.h"
-#include <cuda_runtime.h>
+#include "Initilization.hpp"
 
 class Transformer
 {
 	int embed_size;
 	int vocab_size;
-	int seq_lengh;
+	int seq_len;
 	int batch_size;
+	int context_len;
 	vector<long long> token_ids;
 
 public:
@@ -28,8 +29,10 @@ public:
 			embed_size = stoi(in["GPT"]["Emdedding_size"]);
 			vocab_size = stoi(in["GPT"]["Vocab_size"]);
 			batch_size = stoi(in["GPT"]["Batch_size"]);
-			seq_lengh = ids.size();
+			seq_len = stoi(in["GPT"]["Seq_len"]);
 			token_ids = ids;
+			context_len = token_ids.size();
+
 			cout << "Parameters imported from config.ini...." << endl;
 		}
 		else cout << "File Have Problem.." << endl;
@@ -37,18 +40,47 @@ public:
 
 	void ready()
 	{
-		auto embed_matirx = GPU::random(embed_size * vocab_size);
-		auto position_matirx = GPU::random(seq_lengh * embed_size);
+		int ct = 0;
+		vector<vector<long long>> chunks;
 		
-		vector<float> context;
-		context.reserve(seq_lengh * embed_size);
+		chunks.reserve(context_len - seq_len);
 
-		for (int i = 0; i < seq_lengh; ++i)
+		for (int i = 0; i < context_len - seq_len; ++i)
 		{
-			int temp_index = (token_ids[i]) * embed_size;
-			for (int j = temp_index; j < temp_index + embed_size; ++j) context.push_back(embed_matirx[j]);
+			vector<long long> temp;
+			temp.reserve(seq_len + ct + 1);
+
+			for (int j = ct; j < seq_len + ct + 1; ++j) temp.push_back(token_ids[j]);
+			++ct;
+			chunks.push_back(temp);
 		}
-		auto X = GPU::add(context, position_matirx);
+
+		Debug::display(chunks);
+		
+		vector<vector<long long>> token_x;
+		vector<vector<long long>> token_y;
+
+		token_x.reserve(context_len - seq_len);
+		token_y.reserve(context_len - seq_len);
+
+		for (int k = 0; k < context_len - seq_len; ++k)
+		{
+			vector<long long> token_x_temp;
+			vector<long long> token_y_temp;
+			
+			token_x_temp.reserve(seq_len);
+			token_y_temp.reserve(seq_len);
+			
+			for (int i = 0, j = 1; i < chunks[k].size() - 1, j < chunks[k].size(); ++i, ++j)
+			{
+				token_x_temp.push_back(chunks[k][i]);
+				token_y_temp.push_back(chunks[k][j]);
+			}
+			token_x.push_back(token_x_temp);
+			token_y.push_back(token_y_temp);
+		}
+		Debug::display(token_x);
+		Debug::display(token_y);
 	}
 };
 
