@@ -38,39 +38,46 @@ public:
 		else cout << "File Have Problem.." << endl;
 	}
 
-	void ready()
-	{
-		int ct = 0;
-		int cols = context_len - seq_len;
-		vector<vector<long long>> chunks;
-		
-		chunks.reserve(cols);
-
-		for (int i = 0; i < cols; ++i)
+		void ready()
 		{
-			vector<long long> temp;
-			temp.reserve(seq_len + ct + 1);
+			int ct = 0;
+			int cols = context_len - seq_len;
+			vector<vector<long long>> chunks;
+			
+			chunks.reserve(cols);
 
-			for (int j = ct; j < seq_len + ct + 1; ++j) temp.push_back(token_ids[j]);
-			++ct;
-			chunks.push_back(temp);
-		}
-		
-		int rows = chunks[0].size() - 1;
-
-		vector<long long> token_x;
-		vector<long long> token_y;
-
-		token_x.reserve(cols * rows);
-		token_y.reserve(cols * rows);
-		
-		for (int k = 0; k < cols; ++k)
-		{			
-			for (int i = 0, j = 1; i < rows, j < rows + 1; ++i, ++j)
+			for (int i = 0; i < cols; ++i)
 			{
-				token_x.push_back(chunks[k][i]);
-				token_y.push_back(chunks[k][j]);
+				vector<long long> temp;
+				temp.reserve(seq_len + ct + 1);
+
+				for (int j = ct; j < seq_len + ct + 1; ++j) temp.push_back(token_ids[j]);
+				++ct;
+				chunks.push_back(temp);
 			}
+			
+			int rows = chunks[0].size() - 1;
+
+			vector<long long> token_x;
+			vector<long long> token_y;
+
+			token_x.reserve(cols * rows);
+			token_y.reserve(cols * rows);
+			
+			for (int k = 0; k < cols; ++k)
+			{			
+				for (int i = 0, j = 1; i < rows, j < rows + 1; ++i, ++j)
+				{
+					token_x.push_back(chunks[k][i]);
+					token_y.push_back(chunks[k][j]);
+				}
+			}
+			
+			Debug::display(token_x);
+			Debug::display(token_y);
+
+			auto embed_mat = Initial::weights(vocab_size * embed_size);
+			auto pos_mat = Initial::weights(context_len * embed_size);
 		}
 	}
 };
