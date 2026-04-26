@@ -41,11 +41,12 @@ public:
 	void ready()
 	{
 		int ct = 0;
+		int cols = context_len - seq_len;
 		vector<vector<long long>> chunks;
 		
-		chunks.reserve(context_len - seq_len);
+		chunks.reserve(cols);
 
-		for (int i = 0; i < context_len - seq_len; ++i)
+		for (int i = 0; i < cols; ++i)
 		{
 			vector<long long> temp;
 			temp.reserve(seq_len + ct + 1);
@@ -54,33 +55,23 @@ public:
 			++ct;
 			chunks.push_back(temp);
 		}
-
-		Debug::display(chunks);
 		
-		vector<vector<long long>> token_x;
-		vector<vector<long long>> token_y;
+		int rows = chunks[0].size() - 1;
 
-		token_x.reserve(context_len - seq_len);
-		token_y.reserve(context_len - seq_len);
+		vector<long long> token_x;
+		vector<long long> token_y;
 
-		for (int k = 0; k < context_len - seq_len; ++k)
-		{
-			vector<long long> token_x_temp;
-			vector<long long> token_y_temp;
-			
-			token_x_temp.reserve(seq_len);
-			token_y_temp.reserve(seq_len);
-			
-			for (int i = 0, j = 1; i < chunks[k].size() - 1, j < chunks[k].size(); ++i, ++j)
+		token_x.reserve(cols * rows);
+		token_y.reserve(cols * rows);
+		
+		for (int k = 0; k < cols; ++k)
+		{			
+			for (int i = 0, j = 1; i < rows, j < rows + 1; ++i, ++j)
 			{
-				token_x_temp.push_back(chunks[k][i]);
-				token_y_temp.push_back(chunks[k][j]);
+				token_x.push_back(chunks[k][i]);
+				token_y.push_back(chunks[k][j]);
 			}
-			token_x.push_back(token_x_temp);
-			token_y.push_back(token_y_temp);
 		}
-		Debug::display(token_x);
-		Debug::display(token_y);
 	}
 };
 
