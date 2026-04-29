@@ -43,28 +43,30 @@ public:
 		vector<long long> token_x;
 		vector<long long> token_y;
 
-		token_x.reserve(context_len - 1);
-		token_y.reserve(context_len - 1);
+		int xy_size = context_len - 1; 
+		
+		token_x.reserve(xy_size);
+		token_y.reserve(xy_size);
 
-		for (int i = 0, j = 1; i < context_len - 1, j < context_len; ++i, ++j)
+		for (int i = 0, j = 1; i < xy_size, j < context_len; ++i, ++j)
 		{
 			token_x.push_back(token_ids[i]);
 			token_y.push_back(token_ids[j]);	
 		}
 
 		auto embed_mat = Initial::weights(vocab_size * embed_size);
-		auto pos_mat = Initial::weights((context_len - 1) * embed_size);
+		auto pos_mat = Initial::weights((xy_size) * embed_size);
 
 		vector<float> input;
-		input.reserve((context_len - 1) * embed_size);
+		input.reserve((xy_size) * embed_size);
 		
-		for (int i = 0; i < context_len - 1; ++i)
+		for (int i = 0; i < xy_size; ++i)
 		{
 			int temp_index = token_x[i] * embed_size;
 			for (int j = temp_index; j < temp_index + embed_size; ++j) input.push_back(embed_mat[j]);
 		}
 
-		for (int i = 0; i < context_len - 1; ++i)
+		for (int i = 0; i < xy_size; ++i)
 		{
 			int temp_index = i * embed_size;
 
