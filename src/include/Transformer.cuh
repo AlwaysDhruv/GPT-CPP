@@ -44,7 +44,7 @@ public:
 		vector<long long> token_y;
 
 		int xy_size = context_len - 1; 
-		
+
 		token_x.reserve(xy_size);
 		token_y.reserve(xy_size);
 
@@ -69,10 +69,27 @@ public:
 		for (int i = 0; i < xy_size; ++i)
 		{
 			int temp_index = i * embed_size;
-
-			for (int j = temp_index; j < temp_index + embed_size; ++j)
+			for (int k = temp_index; k < temp_index + embed_size; ++k)
 			{
-				cout << input[j] << " ";
+				cout << input[k] << " ";
+			}
+			cout << endl;
+		}
+		
+		cout << endl << endl;
+
+		for (int i = 0; i < xy_size - 1; ++i)
+		{
+			int temp_index_s = i * (seq_len - 1);
+
+			for (int j = temp_index_s; j < temp_index_s + seq_len; ++j)
+			{
+				int temp_index = j * embed_size;
+				for (int k = temp_index; k < temp_index + embed_size; ++k)
+				{
+					cout << input[k] << " ";
+				}
+				cout << "|| ";
 			}
 			cout << endl;
 		}
