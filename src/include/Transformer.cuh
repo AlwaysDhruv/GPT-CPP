@@ -43,8 +43,8 @@ public:
 		vector<long long> token_x;
 		vector<long long> token_y;
 
-		int xy_size = context_len - 1; 
-
+		int xy_size = context_len - 1;
+		
 		token_x.reserve(xy_size);
 		token_y.reserve(xy_size);
 
@@ -76,10 +76,10 @@ public:
 			cout << endl;
 		}
 		
-		cout << endl << endl;
-		cout << "Sequence..." << endl;
+		cout << endl << "Sequencing....." << endl;
 
-		for (int i = 0; i < xy_size - 1; ++i)
+		int ct = 0;
+		for (int i = 0; i < xy_size - 1 && i * (seq_len - 1) < xy_size - 1; ++i)
 		{
 			int temp_index_s = i * (seq_len - 1);
 
@@ -90,34 +90,12 @@ public:
 				{
 					cout << input[k] << " ";
 				}
-				cout << "||";
-			}
-			cout << endl;
-		}
-		
-		cout << endl << endl;
-		cout << "Batching..." << endl;
-
-		for (int i = 0; i < batch_size / (xy_size / seq_len) + 1; ++i)
-		{
-			int temp_index_b = i * batch_size;
-			for (int batch = temp_index_b; batch < temp_index_b + batch_size; ++batch)
-			{	
-				int temp_index_s = batch * (seq_len - 1);
-
-				for (int j = temp_index_s; j < temp_index_s + seq_len; ++j)
-				{
-					int temp_index = j * embed_size;
-				
-					for (int k = temp_index; k < temp_index + embed_size; ++k) cout << input[k] << " ";
-				
-					cout << "||";
-				}
 				cout << endl;
 			}
-			cout << endl;
-			cout << endl;
+			cout << endl << endl;
+			++ct;
 		}
+		cout << ct << endl
 	}
 };
 
