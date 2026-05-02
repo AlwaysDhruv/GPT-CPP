@@ -15,6 +15,8 @@ class Transformer
 	int seq_len;
 	int batch_size;
 	int context_len;
+	int num_seq;
+	int xy_size;
 	vector<long long> token_ids;
 
 public:
@@ -32,18 +34,17 @@ public:
 			seq_len = stoi(in["GPT"]["Seq_len"]);
 			token_ids = ids;
 			context_len = token_ids.size();
-
+			xy_size = context_len - 1;
+			num_seq = xy_size - seq_len;
 			cout << "Parameters imported from config.ini...." << endl;
 		}
-		else cout << "File Have Problem.." << endl;
+		else cout << "config.ini Have Problem...." << endl;
 	}
 
 	void ready()
 	{
 		vector<long long> token_x;
 		vector<long long> token_y;
-
-		int xy_size = context_len - 1;
 		
 		token_x.reserve(xy_size);
 		token_y.reserve(xy_size);
@@ -66,36 +67,31 @@ public:
 			for (int j = temp_index; j < temp_index + embed_size; ++j) input.push_back(embed_mat[j]);
 		}
 
-		for (int i = 0; i < xy_size; ++i)
-		{
-			int temp_index = i * embed_size;
-			for (int k = temp_index; k < temp_index + embed_size; ++k)
-			{
-				cout << input[k] << " ";
-			}
-			cout << endl;
-		}
-		
-		cout << endl << "Sequencing....." << endl;
-
+		cout << "Batching....." << endl;
 		int ct = 0;
-		for (int i = 0; i < xy_size - 1 && i * (seq_len - 1) < xy_size - 1; ++i)
+		for (int i = 0; i < num_seq; i+=batch_size)
 		{
-			int temp_index_s = i * (seq_len - 1);
-
-			for (int j = temp_index_s; j < temp_index_s + seq_len; ++j)
+			cout << "Batch " << ++ct << endl;
+			cout << "==================================" << endl;
+			for (int batch = 0; batch < batch_size && (i + batch) < num_seq ; ++batch)
 			{
-				int temp_index = j * embed_size;
-				for (int k = temp_index; k < temp_index + embed_size; ++k)
-				{
-					cout << input[k] << " ";
-				}
-				cout << endl;
+				int temp_index = i + batch;
+
+			    for (int j = 0; j < seq_len; ++j)
+			    {
+			        int base = (temp_index + j) * embed_size;
+
+			        for (int k = 0; k < embed_size; ++k)
+			        {
+			            cout << input[base + k] << " ";
+			        }
+			        cout << endl;
+			    }
+			    cout << endl;
 			}
+			cout << "==================================" << endl;
 			cout << endl << endl;
-			++ct;
 		}
-		cout << ct << endl
 	}
 };
 
