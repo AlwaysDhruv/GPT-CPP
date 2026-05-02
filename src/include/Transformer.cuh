@@ -3,10 +3,9 @@
 
 #include <iostream>
 #include <fstream>
-#include "Tensor.hpp"
+#include "Tensor.cuh"
 #include "Display.hpp"
 #include "../utils/ini.h"
-#include "Initilization.hpp"
 
 class Transformer
 {
@@ -55,17 +54,18 @@ public:
 			token_y.push_back(token_ids[j]);	
 		}
 
-		auto embed_mat = Initial::weights(vocab_size * embed_size);
-		auto pos_mat = Initial::weights((xy_size) * embed_size);
+		auto embed_mat = GPU::random(vocab_size * embed_size);
+		auto pos_mat = GPU::random(xy_size * embed_size);
 
 		vector<float> input;
-		input.reserve((xy_size) * embed_size);
+		input.reserve(xy_size * embed_size);
 		
 		for (int i = 0; i < xy_size; ++i)
 		{
 			int temp_index = token_x[i] * embed_size;
 			for (int j = temp_index; j < temp_index + embed_size; ++j) input.push_back(embed_mat[j]);
 		}
+    auto X = GPU::add(input, pos_mat);
 
 		cout << "Batching....." << endl;
 		int ct = 0;
@@ -83,7 +83,7 @@ public:
 
 			        for (int k = 0; k < embed_size; ++k)
 			        {
-			            cout << input[base + k] << " ";
+			            cout << X[base + k] << " ";
 			        }
 			        cout << endl;
 			    }

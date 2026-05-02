@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include "./include/BPE.hpp"
-#include "./include/Transformer.hpp"
+#include "./include/Transformer.cuh"
 using namespace std;
 
 int main(int argc, char const *argv[])
@@ -11,7 +11,7 @@ int main(int argc, char const *argv[])
 	vector<string> tokens;
 	vector<long long> token_ids;
 	//tk.fit("../data/test.txt", 72);
-	tk.encoding("../data/test.txt", tokens, token_ids);
+	tk.encoding("../data/test2.txt", tokens, token_ids);
 	Transformer tr(token_ids);
 	tr.ready();
 	return 0;
