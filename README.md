@@ -1,2 +1,1 @@
-# Generative Pre Trained Transformer Implement From Scratch In C++
-GPT style transfomer implemented from scratch in C++.
+# Transfomer Based Framework For Building a Models
