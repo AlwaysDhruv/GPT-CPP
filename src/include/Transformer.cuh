@@ -60,7 +60,7 @@ public:
 		vector<vector<float>> embed_x;
 		embed_x.reserve(xy_size);
 		
-		for (int i = 0; i < xy_size; ++i) embed_x.push_back(Tensor::add(embed_mat[token_x[i]], pos_mat[i]));
+		for (int i = 0; i < xy_size; ++i) embed_x.push_back(GPU::add(embed_mat[token_x[i]], pos_mat[i]));
 
 		vector<vector<vector<float>>> X;
 		X.reserve(num_seq);
