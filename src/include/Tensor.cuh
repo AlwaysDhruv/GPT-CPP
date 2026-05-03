@@ -25,8 +25,9 @@ namespace GPU
         }
     }
 
-    inline std::vector<float> random(int N)
+    inline std::vector<vector<float>> random(int N1, int N2)
     {
+        int N = N1 * N2;
         float *d_data;
         curandState *d_states;
 
@@ -38,13 +39,27 @@ namespace GPU
 
         random_kernel<<<blocks, threads>>>(d_data, d_states, N);
 
-        std::vector<float> h_data(N);
+        vector<float> h_data(N);
         cudaMemcpy(h_data.data(), d_data, N * sizeof(float), cudaMemcpyDeviceToHost);
 
         cudaFree(d_data);
         cudaFree(d_states);
 
-        return h_data;
+        vector<vector<float>> weigths;
+        weigths.reserve(N1);
+
+        for(int i = 0; i < N1; ++i)
+        {
+            vector<float> temp;
+            temp.reserve(N2);
+
+            int index = N1 * N2;
+
+            for(int j = index; j < index + N2; ++j) temp.push_back(h_data[j]);
+
+            weigths.push_back(temp);
+        }
+        return weigths;
     }
 
     inline std::vector<float> add(const std::vector<float>& A,

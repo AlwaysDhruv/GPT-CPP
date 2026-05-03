@@ -54,44 +54,28 @@ public:
 			token_y.push_back(token_ids[j]);	
 		}
 
-		auto embed_mat = GPU::random(vocab_size * embed_size);
-		auto pos_mat = GPU::random(xy_size * embed_size);
+		auto embed_mat = GPU::random(vocab_size, embed_size);
+		auto pos_mat = GPU::random(xy_size ,embed_size);
 
-		vector<float> input;
-		input.reserve(xy_size * embed_size);
+		vector<vector<float>> embed_x;
+		embed_x.reserve(xy_size);
 		
-		for (int i = 0; i < xy_size; ++i)
-		{
-			int temp_index = token_x[i] * embed_size;
-			for (int j = temp_index; j < temp_index + embed_size; ++j) input.push_back(embed_mat[j]);
-		}
-    auto X = GPU::add(input, pos_mat);
+		for (int i = 0; i < xy_size; ++i) embed_x.push_back(Tensor::add(embed_mat[token_x[i]], pos_mat[i]));
 
-		cout << "Batching....." << endl;
-		int ct = 0;
-		for (int i = 0; i < num_seq; i+=batch_size)
+		vector<vector<vector<float>>> X;
+		X.reserve(num_seq);
+
+		for (int i = 0; i < num_seq; ++i)
 		{
-			cout << "Batch " << ++ct << endl;
-			cout << "==================================" << endl;
-			for (int batch = 0; batch < batch_size && (i + batch) < num_seq ; ++batch)
+			vector<vector<float>> temp;
+			temp.reserve(seq_len + i);
+			for (int j = 0 + i; j < seq_len + i; ++j)
 			{
-				int temp_index = i + batch;
-
-			    for (int j = 0; j < seq_len; ++j)
-			    {
-			        int base = (temp_index + j) * embed_size;
-
-			        for (int k = 0; k < embed_size; ++k)
-			        {
-			            cout << X[base + k] << " ";
-			        }
-			        cout << endl;
-			    }
-			    cout << endl;
+				temp.push_back(embed_x[j]);
 			}
-			cout << "==================================" << endl;
-			cout << endl << endl;
+			X.push_back(temp);
 		}
+		Debug::display(X);
 	}
 };
 
